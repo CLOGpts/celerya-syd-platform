@@ -8,6 +8,8 @@ import SuppliersListPage from './components/SuppliersListPage';
 import DocumentViewer from './components/DocumentViewer';
 import { ResourceViewerPage } from './components/ResourceViewerPage';
 import DDTViewerPage from './components/DDTViewerPage';
+import LoginPage from './components/LoginPage';
+import ExcelUploaderPage from './components/ExcelUploaderPage';
 import { SpinnerIcon } from './components/icons/SpinnerIcon';
 import type { Product, Alert, Section, AnalyzedTransportDocument, Customer, AllSuppliersData } from './types';
 import { getCustomSchema, generateAlertsFromSchema } from './constants';
@@ -15,6 +17,8 @@ import { SupplierDashboard } from './components/SupplierDashboard';
 import { UserCogIcon } from './components/icons/UserCogIcon';
 import { FactoryIcon } from './components/icons/FactoryIcon';
 import { useTranslation } from './contexts/LanguageContext';
+import { authService } from './src/services/authService';
+import type { User } from 'firebase/auth';
 
 
 const App: React.FC = () => {
@@ -24,6 +28,8 @@ const App: React.FC = () => {
   const [ddtToView, setDdtToView] = useState<AnalyzedTransportDocument | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [userRole, setUserRole] = useState<'client' | 'supplier'>('client');
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
   const { t } = useTranslation();
 
   // --- Demo data for Supplier Dashboard selectors ---
@@ -32,6 +38,16 @@ const App: React.FC = () => {
   const [selectedDemoSupplier, setSelectedDemoSupplier] = useState(demoSuppliers[0]);
   const [selectedDemoCustomer, setSelectedDemoCustomer] = useState(demoCustomers[0]);
 
+
+  // Auth state listener
+  useEffect(() => {
+    const unsubscribe = authService.onAuthStateChange((currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     // --- Data Migration for existing users ---
@@ -157,12 +173,17 @@ const App: React.FC = () => {
     setUserRole(prev => (prev === 'client' ? 'supplier' : 'client'));
   };
 
-  if (isInitializing) {
+  if (isInitializing || authLoading) {
     return (
       <div className="flex items-center justify-center h-screen bg-gray-100 dark:bg-slate-900">
         <SpinnerIcon className="w-12 h-12 text-slate-500 dark:text-slate-400" />
       </div>
     );
+  }
+
+  // Show login page if not authenticated
+  if (!user) {
+    return <LoginPage onLoginSuccess={() => window.location.reload()} />;
   }
 
   if (resourceToView) {
@@ -195,6 +216,7 @@ const App: React.FC = () => {
             {activePage === 'Dashboard' && <DashboardPage />}
             {activePage === 'SYD AGENT' && <DataViewPage />}
             {activePage === 'Lista Fornitori' && <SuppliersListPage />}
+            {activePage === 'Excel Upload' && <ExcelUploaderPage />}
             {activePage === 'Impostazioni' && <SettingsPage />}
           </main>
         </div>
