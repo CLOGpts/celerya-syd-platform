@@ -10,6 +10,8 @@ import { ResourceViewerPage } from './components/ResourceViewerPage';
 import DDTViewerPage from './components/DDTViewerPage';
 import LoginPage from './components/LoginPage';
 import ExcelUploaderPage from './components/ExcelUploaderPage';
+import SemanticSearchPage from './components/SemanticSearchPage';
+import LLMExcelPage from './components/LLMExcelPage';
 import { SpinnerIcon } from './components/icons/SpinnerIcon';
 import type { Product, Alert, Section, AnalyzedTransportDocument, Customer, AllSuppliersData } from './types';
 import { getCustomSchema, generateAlertsFromSchema } from './constants';
@@ -217,6 +219,8 @@ const App: React.FC = () => {
             {activePage === 'SYD AGENT' && <DataViewPage />}
             {activePage === 'Lista Fornitori' && <SuppliersListPage />}
             {activePage === 'Excel Upload' && <ExcelUploaderPage />}
+            {activePage === 'Ricerca Semantica' && <SemanticSearchPage />}
+            {activePage === 'LLM Excel' && <LLMExcelPage />}
             {activePage === 'Impostazioni' && <SettingsPage />}
           </main>
         </div>

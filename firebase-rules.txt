@@ -1,0 +1,92 @@
+REGOLE FIREBASE DA CONFIGURARE NELLA CONSOLE
+=============================================
+
+1. FIRESTORE DATABASE - Regole di Sicurezza
+--------------------------------------------
+Vai su: Firebase Console > Firestore Database > Regole
+
+Sostituisci le regole esistenti con:
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Regola generale: utenti autenticati possono leggere e scrivere
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+    
+    // Regole specifiche per collezioni
+    match /magazzino/{document} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+    
+    match /customers/{document} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+    
+    match /suppliers/{document} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+    
+    match /documents/{document} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
+    }
+  }
+}
+
+2. STORAGE - Regole di Sicurezza
+---------------------------------
+Vai su: Firebase Console > Storage > Regole
+
+Sostituisci le regole esistenti con:
+
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+
+3. AUTHENTICATION - Metodi di Accesso
+--------------------------------------
+Vai su: Firebase Console > Authentication > Sign-in method
+
+Assicurati che sia abilitato:
+- Email/Password
+
+4. VERIFICA CONFIGURAZIONE
+---------------------------
+Dopo aver aggiornato le regole:
+
+1. Clicca "Pubblica" per ogni set di regole
+2. Attendi 1-2 minuti per la propagazione
+3. Ricarica la pagina dell'app
+4. Prova nuovamente l'upload
+
+NOTA IMPORTANTE:
+----------------
+Queste regole permettono a TUTTI gli utenti autenticati di leggere e scrivere.
+Per produzione, considera regole più restrittive basate su:
+- UID specifici
+- Ruoli utente
+- Proprietà dei documenti
+
+TROUBLESHOOTING:
+----------------
+Se continui ad avere errori di permessi:
+
+1. Verifica che l'utente sia effettivamente loggato
+2. Controlla la console del browser per l'UID dell'utente
+3. Verifica che le regole siano state pubblicate correttamente
+4. Controlla che il progetto Firebase sia quello corretto
+
+Per testare le regole:
+- Usa il Simulator nella console Firebase
+- Inserisci un UID di test
+- Prova le operazioni read/write

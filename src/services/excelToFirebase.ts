@@ -135,14 +135,17 @@ export class ExcelToFirebase {
           }
           // Date
           else if (this.isDate(value)) {
-            processed[normalizedKey] = value;
-            processed[normalizedKey + '_timestamp'] = new Date(value).getTime();
+            // Converti la data nel formato corretto
+            const dateValue = this.parseDate(value);
+            processed[normalizedKey] = dateValue.toISOString();
+            processed[normalizedKey + '_timestamp'] = dateValue.getTime();
             
             // Per scadenze
             if (normalizedKey.includes('scad') || normalizedKey.includes('expir')) {
-              const daysUntil = this.daysUntilDate(value);
+              const daysUntil = this.daysUntilDate(dateValue.toISOString());
               processed._daysUntilExpiry = daysUntil;
               processed._expiryStatus = this.getExpiryStatus(daysUntil);
+              processed._scadenzaOriginale = value.toString(); // Salva anche il valore originale
             }
           }
           // Testo
@@ -236,9 +239,52 @@ export class ExcelToFirebase {
     return false;
   }
   
+  private parseDate(value: any): Date {
+    if (value instanceof Date) {
+      return value;
+    }
+    
+    const str = value.toString().trim();
+    
+    // Pattern per date italiane (gg/mm/aaaa o gg-mm-aaaa)
+    const italianPattern = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/;
+    const match = str.match(italianPattern);
+    
+    if (match) {
+      const [_, day, month, year] = match;
+      return new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    }
+    
+    return new Date(value);
+  }
+  
   private isDate(value: any): boolean {
     if (!value) return false;
-    const date = new Date(value);
+    
+    // Prova diversi formati di data
+    let date: Date | null = null;
+    
+    // Se è già una data valida
+    if (value instanceof Date) {
+      return !isNaN(value.getTime());
+    }
+    
+    // Converti in stringa
+    const str = value.toString().trim();
+    
+    // Pattern per date italiane (gg/mm/aaaa o gg-mm-aaaa)
+    const italianPattern = /^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/;
+    const match = str.match(italianPattern);
+    
+    if (match) {
+      // Formato italiano: giorno/mese/anno
+      const [_, day, month, year] = match;
+      date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      return !isNaN(date.getTime());
+    }
+    
+    // Prova parsing standard
+    date = new Date(value);
     return date instanceof Date && !isNaN(date.getTime());
   }
   

@@ -11,6 +11,8 @@ import { MoonIcon } from './icons/MoonIcon';
 import { UsaFlagIcon } from './icons/UsaFlagIcon';
 import { ItalyFlagIcon } from './icons/ItalyFlagIcon';
 import { ExcelIcon } from './icons/ExcelIcon';
+import { SearchIcon } from './icons/SearchIcon';
+import { SparklesIcon } from './icons/SparklesIcon';
 import { authService } from '../src/services/authService';
 
 interface SidebarProps {
@@ -48,6 +50,8 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage }) => {
     { id: 'SYD AGENT', label: t('sidebar.syd_agent'), icon: <TableIcon /> },
     { id: 'Lista Fornitori', label: t('sidebar.suppliers_list'), icon: <FactoryIcon /> },
     { id: 'Excel Upload', label: 'Excel Upload', icon: <ExcelIcon className="w-5 h-5" /> },
+    { id: 'Ricerca Semantica', label: '🧠 Ricerca Semantica', icon: <SearchIcon className="w-5 h-5" /> },
+    { id: 'LLM Excel', label: '🚀 LLM Excel', icon: <SparklesIcon className="w-5 h-5" /> },
     { id: 'Impostazioni', label: t('sidebar.settings'), icon: <SettingsIcon /> },
     { id: 'Changelog', label: t('sidebar.changelog'), icon: <ChangelogIcon /> },
   ];

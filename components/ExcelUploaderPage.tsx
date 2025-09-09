@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { excelUploader } from '../src/services/excelToFirebase';
+import { authService } from '../src/services/authService';
 import { SpinnerIcon } from './icons/SpinnerIcon';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import { ExcelIcon } from './icons/ExcelIcon';
@@ -10,6 +11,19 @@ const ExcelUploaderPage: React.FC = () => {
   const [progress, setProgress] = useState<any>(null);
   const [result, setResult] = useState<any>(null);
   const [collectionName, setCollectionName] = useState('magazzino');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  useEffect(() => {
+    const user = authService.getCurrentUser();
+    setIsAuthenticated(!!user);
+    
+    if (!user) {
+      setResult({
+        success: false,
+        message: 'Devi essere autenticato per caricare file'
+      });
+    }
+  }, []);
   
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0];
@@ -22,10 +36,24 @@ const ExcelUploaderPage: React.FC = () => {
   const handleUpload = async () => {
     if (!file) return;
     
+    // Verifica autenticazione
+    const user = authService.getCurrentUser();
+    if (!user) {
+      setResult({
+        success: false,
+        message: 'Devi essere autenticato per caricare file. Ricarica la pagina e accedi.'
+      });
+      return;
+    }
+    
     setUploading(true);
     setResult(null);
     
     try {
+      console.log('🔐 Utente autenticato:', user.email);
+      console.log('📁 Caricamento file:', file.name);
+      console.log('📂 Collezione target:', collectionName);
+      
       const uploadResult = await excelUploader.uploadExcel(
         file,
         collectionName,
@@ -39,10 +67,18 @@ const ExcelUploaderPage: React.FC = () => {
         const stats = await excelUploader.getCollectionStats(collectionName);
         console.log('📊 Statistiche collezione:', stats);
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('❌ Errore upload:', error);
+      
+      // Gestione errori specifici Firebase
+      let errorMessage = `Errore: ${error}`;
+      if (error?.code === 'permission-denied' || error?.message?.includes('permission')) {
+        errorMessage = 'Errore permessi Firebase. Contatta l\'amministratore per aggiornare le regole di sicurezza.';
+      }
+      
       setResult({
         success: false,
-        message: `Errore: ${error}`
+        message: errorMessage
       });
     } finally {
       setUploading(false);
@@ -91,7 +127,18 @@ const ExcelUploaderPage: React.FC = () => {
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Seleziona File Excel
             </label>
-            <div className="relative">
+            <div 
+              className="relative"
+              onDrop={(e) => {
+                e.preventDefault();
+                const droppedFile = e.dataTransfer.files[0];
+                if (droppedFile && (droppedFile.name.endsWith('.xlsx') || droppedFile.name.endsWith('.xls'))) {
+                  setFile(droppedFile);
+                  setResult(null);
+                }
+              }}
+              onDragOver={(e) => e.preventDefault()}
+            >
               <input
                 type="file"
                 accept=".xlsx,.xls"
@@ -232,7 +279,7 @@ const ExcelUploaderPage: React.FC = () => {
           
           <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded">
             <p className="text-xs text-amber-700 dark:text-amber-400">
-              <strong>Nota:</strong> File grandi (>10.000 record) potrebbero richiedere alcuni minuti. 
+              <strong>Nota:</strong> File grandi (oltre 10.000 record) potrebbero richiedere alcuni minuti. 
               Il caricamento avviene in batch per ottimizzare le performance.
             </p>
           </div>

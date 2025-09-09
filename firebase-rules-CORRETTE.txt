@@ -1,0 +1,35 @@
+COPIA ESATTAMENTE QUESTO TESTO (senza i numeri di riga):
+=========================================================
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if request.auth != null;
+    }
+  }
+}
+
+=========================================================
+
+ISTRUZIONI:
+1. Vai su Firebase Console > Firestore Database > Regole
+2. CANCELLA TUTTO il contenuto esistente
+3. INCOLLA il testo sopra (da rules_version fino all'ultima })
+4. Clicca "Pubblica"
+
+IMPORTANTE: 
+- NON copiare i simboli ═ o altre decorazioni
+- NON copiare numeri di riga
+- Assicurati che non ci siano caratteri strani come │
+
+Se ancora non funziona, prova questa versione SUPER SEMPLICE per test:
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Semplice Firebase</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        #output {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            min-height: 100px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h1>🧠 Test Algoritmo Semantico Firebase</h1>
+        <p>Test semplificato per verificare connessione e query</p>
+    </div>
+
+    <div class="card">
+        <h2>1. Test Connessione</h2>
+        <button onclick="testConnection()">🔌 Testa Connessione Firebase</button>
+        <div id="connectionStatus"></div>
+    </div>
+
+    <div class="card">
+        <h2>2. Test Query</h2>
+        <input type="text" id="collection" placeholder="Nome collezione (es. magazzino)" value="magazzino">
+        <button onclick="testQuery()">📊 Leggi Prima Record</button>
+        <div id="queryResult"></div>
+    </div>
+
+    <div class="card">
+        <h2>3. Test Ricerca Semantica</h2>
+        <input type="text" id="searchQuery" placeholder="Cerca qualcosa..." value="articoli">
+        <button onclick="testSearch()">🔍 Cerca</button>
+        <div id="searchResult"></div>
+    </div>
+
+    <div class="card">
+        <h2>Output Console</h2>
+        <div id="output"></div>
+    </div>
+
+    <!-- Firebase v9 Modular SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, getDocs, query, limit, where, orderBy } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        // Config Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyDAc-Fp6WWB8c7d1TPSlJiFvVVwxSPHo3E",
+            authDomain: "adept-presence-464522-s3.firebaseapp.com",
+            projectId: "adept-presence-464522-s3",
+            storageBucket: "adept-presence-464522-s3.firebasestorage.app",
+            messagingSenderId: "325094546058",
+            appId: "1:325094546058:web:74cdcd05fcb98b24752b73"
+        };
+
+        // Inizializza Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Funzioni globali
+        window.log = function(message, type = 'info') {
+            const output = document.getElementById('output');
+            const time = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : '';
+            output.innerHTML += `<span class="${className}">[${time}] ${message}</span>\n`;
+            console.log(message);
+        };
+
+        window.testConnection = async function() {
+            try {
+                log('Tentativo connessione Firebase...');
+                
+                // Login anonimo
+                const userCredential = await signInAnonymously(auth);
+                log('✅ Login anonimo riuscito: ' + userCredential.user.uid, 'success');
+                
+                document.getElementById('connectionStatus').innerHTML = 
+                    '<p class="success">✅ Connesso con successo!</p>';
+                
+            } catch (error) {
+                log('❌ Errore: ' + error.message, 'error');
+                document.getElementById('connectionStatus').innerHTML = 
+                    '<p class="error">❌ Errore: ' + error.message + '</p>';
+            }
+        };
+
+        window.testQuery = async function() {
+            try {
+                const collectionName = document.getElementById('collection').value;
+                log(`Query collezione: ${collectionName}`);
+                
+                const q = query(collection(db, collectionName), limit(5));
+                const snapshot = await getDocs(q);
+                
+                log(`✅ Trovati ${snapshot.size} documenti`, 'success');
+                
+                let html = `<h3>Primi ${snapshot.size} record:</h3><ul>`;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const preview = JSON.stringify(data).substring(0, 200);
+                    html += `<li><strong>${doc.id}:</strong> ${preview}...</li>`;
+                    log(`Doc ${doc.id}: ${Object.keys(data).join(', ')}`);
+                });
+                html += '</ul>';
+                
+                document.getElementById('queryResult').innerHTML = html;
+                
+            } catch (error) {
+                log('❌ Errore query: ' + error.message, 'error');
+                document.getElementById('queryResult').innerHTML = 
+                    '<p class="error">❌ ' + error.message + '</p>';
+            }
+        };
+
+        window.testSearch = async function() {
+            try {
+                const collectionName = document.getElementById('collection').value;
+                const searchTerm = document.getElementById('searchQuery').value.toLowerCase();
+                
+                log(`Ricerca "${searchTerm}" in ${collectionName}`);
+                
+                // Query semplice - prendi tutti e filtra in memoria
+                const q = query(collection(db, collectionName), limit(100));
+                const snapshot = await getDocs(q);
+                
+                // Filtra risultati
+                const results = [];
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    const text = JSON.stringify(data).toLowerCase();
+                    if (text.includes(searchTerm)) {
+                        results.push({ id: doc.id, ...data });
+                    }
+                });
+                
+                log(`✅ Trovati ${results.length} risultati`, 'success');
+                
+                let html = `<h3>Risultati per "${searchTerm}":</h3>`;
+                if (results.length > 0) {
+                    html += '<ul>';
+                    results.slice(0, 10).forEach(item => {
+                        const preview = JSON.stringify(item).substring(0, 150);
+                        html += `<li>${preview}...</li>`;
+                    });
+                    html += '</ul>';
+                    if (results.length > 10) {
+                        html += `<p>... e altri ${results.length - 10} risultati</p>`;
+                    }
+                } else {
+                    html += '<p>Nessun risultato trovato</p>';
+                }
+                
+                document.getElementById('searchResult').innerHTML = html;
+                
+            } catch (error) {
+                log('❌ Errore ricerca: ' + error.message, 'error');
+                document.getElementById('searchResult').innerHTML = 
+                    '<p class="error">❌ ' + error.message + '</p>';
+            }
+        };
+
+        // Test iniziale
+        log('Pagina caricata - Firebase SDK v10 Modular pronto');
+        log('Usa i pulsanti sopra per testare le funzionalità');
+    </script>
+</body>
+</html>
