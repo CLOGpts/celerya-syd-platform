@@ -1,0 +1,91 @@
+⚙️ AGENT BACKEND - ORDINI OPERATIVI
+=====================================
+STATUS: ORDINE ESECUTIVO IMMEDIATO
+PRIORITÀ: ALTA
+=====================================
+
+## ⚠️ REGOLE FERREE:
+1. NON TOCCARE MAI /components/ esistenti
+2. NON TOCCARE MAI App.tsx o index.tsx
+3. LAVORI SOLO IN /src/styles/ e /src/containers/
+4. TOCCHI ROBA SBAGLIATA = SEI MORTO
+
+## 📋 I TUOI TASK PRECISI:
+
+### TASK 1: Crea Theme System
+PATH ESATTO: `/src/styles/SydTheme.ts`
+```typescript
+export const SydTheme = {
+  colors: {
+    header: {
+      gradient: 'from-sky-900 to-blue-900',
+      darkGradient: 'from-slate-900 to-blue-950'
+    },
+    sidebar: {
+      bg: 'bg-white dark:bg-slate-900',
+      border: 'border-slate-200 dark:border-slate-700'
+    },
+    buttons: {
+      blue: 'from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700',
+      green: 'from-green-500 to-green-600 hover:from-green-600 hover:to-green-700',
+      red: 'from-red-500 to-orange-600 hover:from-red-600 hover:to-orange-700',
+      purple: 'from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700',
+      teal: 'from-teal-500 to-cyan-600 hover:from-teal-600 hover:to-cyan-700'
+    }
+  },
+  spacing: {
+    sidebar: 'w-80', // 320px
+    header: 'h-16',
+    button: 'h-10'
+  }
+}
+```
+
+### TASK 2: Crea Layout Container
+PATH ESATTO: `/src/containers/MainLayoutContainer.tsx`
+```typescript
+// Container che userà i componenti UI
+// Props per passare dati ai componenti UI
+// NON IMPLEMENTARE LOGICA, solo struttura
+```
+
+### TASK 3: Crea Dashboard Container
+PATH ESATTO: `/src/containers/DashboardContainer.tsx`
+```typescript
+// Wrapper per DashboardPage
+// Prepara props per componenti UI
+// Interface per i dati da passare
+```
+
+### TASK 4: Crea utilities CSS
+PATH ESATTO: `/src/styles/animations.css`
+```css
+/* Animazioni da comunicazioni.txt */
+.hover-scale { transform: scale(1.05); }
+.transition-all { transition: all 200ms; }
+/* etc... */
+```
+
+## 📝 QUANDO HAI FINITO:
+Aggiungi in FONDO a questo file:
+```
+---
+AGENT BACKEND: COMPLETATO ✅
+Files creati:
+- [ lista dei file ]
+Timestamp: [ora]
+---
+```
+
+⚠️ BASTA. NON INVENTARE. FAI SOLO QUESTO.
+=====================================
+
+---
+AGENT BACKEND: COMPLETATO ✅
+Files creati:
+- /src/styles/SydTheme.ts
+- /src/containers/MainLayoutContainer.tsx
+- /src/containers/DashboardContainer.tsx
+- /src/styles/animations.css
+Timestamp: 2025-09-18 15:55
+---

@@ -1,0 +1,107 @@
+/* Animazioni da comunicazioni.txt */
+
+/* Hover scale animation */
+.hover-scale {
+  transform: scale(1.05);
+}
+
+/* Transition all properties */
+.transition-all {
+  transition: all 200ms;
+}
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 200ms ease-in-out;
+}
+
+/* Pulse animation (for report button) */
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite;
+}
+
+/* Spin animation (loading) */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Z-INDEX LAYERS */
+.z-10 { z-index: 10; } /* Header */
+.z-20 { z-index: 20; } /* Sidebar */
+.z-30 { z-index: 30; } /* Dropdown ATECO */
+.z-40 { z-index: 40; } /* Modal/Overlay */
+.z-50 { z-index: 50; } /* Toast notifications */
+
+/* SHADOWS from specifications */
+.shadow-sm {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.shadow {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-lg {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-xl {
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-2xl {
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+}
+
+/* Hover shadow transition */
+.hover\:shadow-xl:hover {
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1);
+}
+
+/* Transform and scale utilities */
+.transform {
+  transform: translateZ(0);
+}
+
+.hover\:scale-105:hover {
+  transform: scale(1.05);
+}
+
+/* Duration utilities */
+.duration-150 {
+  transition-duration: 150ms;
+}
+
+.duration-200 {
+  transition-duration: 200ms;
+}

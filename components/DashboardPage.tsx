@@ -12,6 +12,7 @@ import { ArrowLeftIcon } from './icons/ArrowLeftIcon';
 import { useTranslation } from '../contexts/LanguageContext';
 import CatalogCreator from './CatalogCreator';
 import { CatalogIcon } from './icons/CatalogIcon';
+import { SydDesign } from '../src/styles/SydDesignSystem';
 
 
 const FolderIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -121,8 +122,8 @@ const AlertsPanel: React.FC<{ alerts: Alert[], status: Status, t: (key: string, 
     const warningAlerts = alerts.filter(a => a.severity === 'warning');
 
     return (
-        <div className="sticky top-8 bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700">
-            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-2">{t('alerts.panel_title')}</h3>
+        <div className="sticky top-8 bg-[#1e293b]/80 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-slate-700/30">
+            <h3 className="text-xl font-semibold text-slate-200 dark:text-slate-100 mb-2">{t('alerts.panel_title')}</h3>
             <div className="mb-6">
                 <StatusBadge status={status} />
             </div>
@@ -132,8 +133,8 @@ const AlertsPanel: React.FC<{ alerts: Alert[], status: Status, t: (key: string, 
                     <svg className="mx-auto h-12 w-12 text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <p className="mt-4 font-semibold text-gray-700 dark:text-gray-200">{t('alerts.no_alerts_title')}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{t('alerts.no_alerts_subtitle')}</p>
+                    <p className="mt-4 font-semibold text-slate-300 dark:text-slate-200">{t('alerts.no_alerts_title')}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400">{t('alerts.no_alerts_subtitle')}</p>
                 </div>
             ) : (
                 <div className="space-y-6">
@@ -144,7 +145,7 @@ const AlertsPanel: React.FC<{ alerts: Alert[], status: Status, t: (key: string, 
                                 {criticalAlerts.map((alert, index) => (
                                     <li key={`crit-${index}`} className="flex items-start gap-3 text-sm">
                                         <AlertIcon className="text-red-500 mt-0.5 flex-shrink-0 w-4 h-4" />
-                                        <span className="text-gray-700 dark:text-gray-300">{alert.message}</span>
+                                        <span className="text-slate-300 dark:text-slate-300">{alert.message}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -157,7 +158,7 @@ const AlertsPanel: React.FC<{ alerts: Alert[], status: Status, t: (key: string, 
                                 {warningAlerts.map((alert, index) => (
                                     <li key={`warn-${index}`} className="flex items-start gap-3 text-sm">
                                         <AlertIcon className="text-yellow-500 mt-0.5 flex-shrink-0 w-4 h-4" />
-                                        <span className="text-gray-700 dark:text-gray-300">{alert.message}</span>
+                                        <span className="text-slate-300 dark:text-slate-300">{alert.message}</span>
                                     </li>
                                 ))}
                             </ul>
@@ -210,13 +211,13 @@ const ContextMenu: React.FC<{
     }, [onClose]);
 
     return (
-        <div ref={menuRef} style={{ top: y, left: x }} className="absolute z-50 bg-white dark:bg-slate-800 rounded-md shadow-lg border border-gray-200 dark:border-slate-700 py-1 w-48">
+        <div ref={menuRef} style={{ top: y, left: x }} className="absolute z-50 bg-[#1e293b]/95 backdrop-blur-sm rounded-md shadow-lg border border-slate-700/50 py-1 w-48">
             <ul>
                 {items.map((item, index) => (
                     <li key={index}>
                         <button
                             onClick={() => { item.onClick(); onClose(); }}
-                            className={`w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-700 hover:text-gray-900 dark:hover:text-gray-100 transition-colors ${item.className || ''}`}
+                            className={`w-full text-left px-4 py-2 text-sm text-slate-300 hover:bg-[#2a3447]/80 hover:text-slate-100 transition-colors ${item.className || ''}`}
                         >
                             {item.label}
                         </button>
@@ -545,15 +546,15 @@ const DashboardPage: React.FC = () => {
         if (!selectedCustomer) {
             return (
                  <div>
-                    <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100 mb-2">{t('dashboard.title')}</h1>
-                    <p className="text-gray-500 dark:text-gray-400 mb-8">{t('dashboard.select_customer')}</p>
+                    <h1 className="text-3xl font-bold text-white mb-2">{t('dashboard.title')}</h1>
+                    <p className="text-slate-400 mb-8">{t('dashboard.select_customer')}</p>
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                         {customers.map(customer => (
                             <div
                                 key={customer.id}
                                 onContextMenu={(e) => { e.stopPropagation(); handleContextMenu(e, customer.id); }}
                                 onClick={() => renamingCustomerId !== customer.id && setSelectedCustomer(customer)}
-                                className="group flex flex-col items-center justify-center p-6 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 cursor-pointer hover:shadow-lg hover:border-lime-500 dark:hover:border-lime-500 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lime-500"
+                                className="group flex flex-col items-center justify-center p-6 bg-[#1e293b]/80 backdrop-blur-sm rounded-xl shadow-lg border border-slate-700/30 cursor-pointer hover:bg-[#2d3748] hover:shadow-xl hover:border-blue-500/50 hover:scale-[1.02] transition-all duration-200"
                             >
                                 <FolderIcon className="w-20 h-20 text-yellow-400 group-hover:text-yellow-500 transition-colors" />
                                 {renamingCustomerId === customer.id ? (
@@ -565,10 +566,10 @@ const DashboardPage: React.FC = () => {
                                             if (e.key === 'Escape') setRenamingCustomerId(null);
                                         }}
                                         onClick={(e) => e.stopPropagation()}
-                                        className="mt-4 text-center font-semibold text-gray-700 dark:text-gray-200 bg-gray-100 dark:bg-slate-700 border border-lime-500 rounded-md w-full"
+                                        className="mt-4 text-center font-semibold text-white bg-slate-700 border border-blue-500 rounded-md w-full"
                                     />
                                 ) : (
-                                    <span className="mt-4 text-center font-semibold text-gray-700 dark:text-gray-300 group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors break-all">{customer.name}</span>
+                                    <span className="mt-4 text-center font-semibold text-slate-300 dark:text-slate-300 group-hover:text-lime-600 dark:group-hover:text-lime-400 transition-colors break-all">{customer.name}</span>
                                 )}
                             </div>
                         ))}
@@ -582,13 +583,13 @@ const DashboardPage: React.FC = () => {
                 <div>
                     <div className="flex justify-between items-center mb-6 gap-4">
                         <div className="flex items-center gap-4">
-                            <button onClick={handleGoToCustomerDashboard} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-400 transition-colors" aria-label={t('dashboard.back_to_customer_dashboard')}><ArrowLeftIcon className="w-6 h-6" /></button>
+                            <button onClick={handleGoToCustomerDashboard} className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm transition-all duration-200 hover:scale-110" aria-label={t('dashboard.back_to_customer_dashboard')}><ArrowLeftIcon className="w-6 h-6 text-slate-300" /></button>
                             <div>
-                                <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">{t('dashboard.results_title')}</h1>
-                                <p className="text-gray-500 dark:text-gray-400 mt-1">{t('dashboard.results_subtitle', {customerName: selectedCustomer.name})}</p>
+                                <h1 className="text-3xl font-bold text-slate-200 dark:text-slate-100">{t('dashboard.results_title')}</h1>
+                                <p className="text-slate-500 dark:text-slate-400 mt-1">{t('dashboard.results_subtitle', {customerName: selectedCustomer.name})}</p>
                             </div>
                         </div>
-                        <button onClick={handleGoToCustomerDashboard} className="flex-shrink-0 flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-slate-800 hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-colors">{t('dashboard.analyze_another')}</button>
+                        <button onClick={handleGoToCustomerDashboard} className="px-4 py-2.5 bg-[#2a3447]/80 hover:bg-[#334155] text-slate-200 font-medium rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200">{t('dashboard.analyze_another')}</button>
                     </div>
                     <div className="grid grid-cols-12 gap-8">
                         <div className="col-span-12 lg:col-span-8"><div ref={pdfContentRef}><PdfContent data={extractedData} alerts={alerts} schema={activeSchema} /></div></div>
@@ -612,10 +613,10 @@ const DashboardPage: React.FC = () => {
         return (
              <div>
                 <div className="flex items-center gap-4 mb-6">
-                    <button onClick={handleGoToCustomerSelection} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-600 dark:text-gray-400 transition-colors" aria-label={t('dashboard.back_to_customer_selection')}><ArrowLeftIcon className="w-6 h-6" /></button>
+                    <button onClick={handleGoToCustomerSelection} className="w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm transition-all duration-200 hover:scale-110" aria-label={t('dashboard.back_to_customer_selection')}><ArrowLeftIcon className="w-6 h-6 text-slate-300" /></button>
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-800 dark:text-gray-100">{t('dashboard.customer_dashboard_title')}</h1>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{t('dashboard.customer_dashboard_subtitle', {customerName: selectedCustomer.name})}</p>
+                        <h1 className="text-3xl font-bold text-slate-200 dark:text-slate-100">{t('dashboard.customer_dashboard_title')}</h1>
+                        <p className="text-sm text-slate-500 dark:text-slate-400">{t('dashboard.customer_dashboard_subtitle', {customerName: selectedCustomer.name})}</p>
                     </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -625,19 +626,19 @@ const DashboardPage: React.FC = () => {
                     <UploadBox title={t('dashboard.upload_pricelist_title')} description={t('dashboard.upload_pricelist_desc')} actionButtonText={t('dashboard.upload_pricelist_action')} file={priceListFile} isProcessing={isAnalyzingPriceList} onFileChange={handlePriceListFileChange} onAction={handleAnalyzePriceList} error={priceListError} acceptedFileTypes=".pdf,.xls,.xlsx,.doc,.docx" idPrefix="pricelist-doc" />
                 </div>
                 <div className="mt-12">
-                    <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-100 mb-4">{t('dashboard.creation_tools_title')}</h2>
+                    <h2 className="text-2xl font-bold text-slate-200 dark:text-slate-100 mb-4">{t('dashboard.creation_tools_title')}</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-200 dark:border-slate-700 h-full flex flex-col items-start text-left">
+                        <div className="bg-[#1e293b]/80 backdrop-blur-sm p-6 rounded-xl shadow-lg border border-slate-700/30 h-full flex flex-col items-start text-left">
                             <div className="p-3 bg-lime-100 dark:bg-lime-900/50 rounded-full mb-4">
                                 <CatalogIcon className="w-6 h-6 text-lime-600 dark:text-lime-400" />
                             </div>
-                            <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{t('dashboard.catalog_generator_title')}</h3>
-                            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400 flex-grow">
+                            <h3 className="text-xl font-semibold text-slate-200 dark:text-slate-100">{t('dashboard.catalog_generator_title')}</h3>
+                            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400 flex-grow">
                                 {t('dashboard.catalog_generator_desc')}
                             </p>
                             <button
                                 onClick={() => setIsCatalogCreatorOpen(true)}
-                                className="w-full mt-6 px-4 py-2 bg-slate-800 text-white font-semibold rounded-lg hover:bg-slate-900 transition-colors"
+                                className="w-full mt-6 px-4 py-2.5 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-medium rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200"
                             >
                                 {t('dashboard.catalog_generator_action')}
                             </button>
@@ -651,7 +652,7 @@ const DashboardPage: React.FC = () => {
 
 
     return (
-        <div className="p-8 bg-gray-50 dark:bg-slate-900 min-h-full" onContextMenu={(e) => !contextMenu && handleContextMenu(e)}>
+        <div className="p-8 bg-transparent min-h-full" onContextMenu={(e) => !contextMenu && handleContextMenu(e)}>
             {renderContent()}
             {isCatalogCreatorOpen && selectedCustomer && <CatalogCreator customer={selectedCustomer} onClose={() => setIsCatalogCreatorOpen(false)} />}
             {contextMenu && (
@@ -660,7 +661,7 @@ const DashboardPage: React.FC = () => {
                         contextMenu.customerId
                             ? [
                                 { label: t('dashboard.context_menu_rename'), onClick: () => setRenamingCustomerId(contextMenu.customerId!) },
-                                { label: t('dashboard.context_menu_delete'), onClick: () => handleDeleteCustomer(contextMenu.customerId!), className: 'text-red-600 hover:bg-red-50 dark:hover:bg-red-900/50' }
+                                { label: t('dashboard.context_menu_delete'), onClick: () => handleDeleteCustomer(contextMenu.customerId!), className: 'text-red-600 hover:bg-black dark:hover:bg-red-900/50' }
                               ]
                             : [{ label: t('dashboard.context_menu_new_folder'), onClick: handleCreateCustomer }]
                     }

@@ -15,9 +15,9 @@ import type { SpeechRecognition, SpeechRecognitionEvent, SpeechRecognitionErrorE
 const MCP_SSE_ENDPOINT = 'https://cloud.activepieces.com/api/v1/mcp/mw52JQzyt7Yl34Rrebl7r/sse';
 
 const SourceLink: React.FC<{uri: string, title: string}> = ({ uri, title }) => (
-    <a href={uri} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 bg-gray-100 dark:bg-slate-700 rounded-md hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
+    <a href={uri} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 bg-gray-900 dark:bg-slate-700 rounded-md hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors">
         <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-500 dark:text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" /></svg>
-        <span className="text-xs font-medium text-gray-700 dark:text-gray-300 truncate" title={title}>{title || uri}</span>
+        <span className="text-xs font-medium text-gray-300 dark:text-gray-300 truncate" title={title}>{title || uri}</span>
     </a>
 );
 
@@ -25,7 +25,7 @@ const SourceLink: React.FC<{uri: string, title: string}> = ({ uri, title }) => (
 const ParsedContent: React.FC<{ text: string }> = ({ text }) => {
     // Check for tables and wrap them
     if (text.includes('|') && text.includes('---')) {
-        return <pre className="font-mono text-xs bg-gray-50 dark:bg-slate-800 p-3 my-2 rounded-md overflow-x-auto whitespace-pre-wrap">{text}</pre>;
+        return <pre className="font-mono text-xs bg-black dark:bg-slate-800 p-3 my-2 rounded-md overflow-x-auto whitespace-pre-wrap">{text}</pre>;
     }
 
     const lines = text.split('\n');
@@ -36,8 +36,8 @@ const ParsedContent: React.FC<{ text: string }> = ({ text }) => {
                 if (line.trim() === '') return <div key={i} style={{height: '1em'}} />;
                 
                 // Titles
-                if (line.startsWith('# ')) return <h1 key={i} className="text-xl font-bold mt-4 mb-2 text-gray-900 dark:text-gray-100">{line.substring(2)}</h1>;
-                if (line.startsWith('## ')) return <h2 key={i} className="text-lg font-semibold mt-3 mb-1 text-gray-800 dark:text-gray-200">{line.substring(3)}</h2>;
+                if (line.startsWith('# ')) return <h1 key={i} className="text-xl font-bold mt-4 mb-2 text-gray-100 dark:text-gray-100">{line.substring(2)}</h1>;
+                if (line.startsWith('## ')) return <h2 key={i} className="text-lg font-semibold mt-3 mb-1 text-gray-200 dark:text-gray-200">{line.substring(3)}</h2>;
                 
                 // Lists
                 if (line.startsWith('- ')) return <li key={i} className="ml-5 list-disc">{line.substring(2)}</li>;
@@ -64,8 +64,8 @@ const ParsedContent: React.FC<{ text: string }> = ({ text }) => {
 const ChatMessage: React.FC<{ role: 'user' | 'model'; text: string; sources?: any[]; offer?: CommercialOffer }> = ({ role, text, sources, offer }) => {
     const isUser = role === 'user';
     const bubbleClasses = isUser
-        ? 'bg-lime-600 text-white'
-        : 'bg-white text-gray-800 border border-gray-200 dark:bg-slate-800 dark:text-gray-200 dark:border-slate-700';
+        ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25'
+        : 'bg-gray-900/70 text-gray-100 border border-gray-800/30 backdrop-blur-sm';
     const alignmentClasses = isUser ? 'items-end' : 'items-start';
     const hasSources = sources && sources.length > 0;
 
@@ -402,10 +402,10 @@ Per le richieste di analisi, dati, e domande generali, struttura le tue risposte
     };
 
     return (
-        <div className="flex flex-col h-full bg-gray-50 dark:bg-slate-900">
-            <header className="p-4 sm:p-6 lg:p-8 border-b border-gray-200 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm sticky top-0 z-10 dark:border-slate-700">
-                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">SYD AGENT</h1>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Il suo assistente intelligente per la direzione strategica.</p>
+        <div className="flex flex-col h-full bg-transparent">
+            <header className="p-4 sm:p-6 lg:p-8 border-b border-gray-800/30 bg-[#1e293b]/80 backdrop-blur-sm sticky top-0 z-10 shadow-lg">
+                <h1 className="text-2xl font-bold text-white">SYD AGENT</h1>
+                <p className="text-sm text-gray-400 mt-1">Il suo assistente intelligente per la direzione strategica.</p>
             </header>
 
             <div className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
@@ -416,7 +416,7 @@ Per le richieste di analisi, dati, e domande generali, struttura le tue risposte
                         ))}
                         {isLoading && (
                             <div className="flex justify-start">
-                                <div className="max-w-2xl px-4 py-3 rounded-xl shadow-sm bg-white dark:bg-slate-800 text-gray-800 dark:text-gray-200 border border-gray-200 dark:border-slate-700">
+                                <div className="max-w-2xl px-4 py-3 rounded-xl shadow-lg bg-[#1e293b]/80 backdrop-blur-sm text-gray-300 border border-gray-700/30">
                                     <div className="flex items-center gap-3">
                                         <SpinnerIcon className="text-gray-500 dark:text-gray-400" />
                                         <span className="text-sm italic">SYD sta analizzando...</span>
@@ -429,25 +429,25 @@ Per le richieste di analisi, dati, e domande generali, struttura le tue risposte
                 </div>
             </div>
 
-            <footer className="p-4 sm:p-6 lg:p-8 border-t border-gray-200 bg-gray-100/50 dark:bg-slate-800/50 backdrop-blur-sm sticky bottom-0 dark:border-slate-700">
+            <footer className="p-4 sm:p-6 lg:p-8 border-t border-gray-800/30 bg-[#1e293b]/80 backdrop-blur-sm sticky bottom-0 shadow-lg">
                 <div className="max-w-4xl mx-auto">
                     {error && <p className="text-red-600 dark:text-red-400 text-sm text-center mb-2">{error}</p>}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label htmlFor="time-machine" className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">Time Machine (opzionale)</label>
+                            <label htmlFor="time-machine" className="block text-xs font-medium text-gray-400 dark:text-gray-300 mb-1">Time Machine (opzionale)</label>
                             <input 
                                 type="date" 
                                 id="time-machine"
                                 value={simulatedDate}
                                 onChange={e => setSimulatedDate(e.target.value)}
-                                className="w-full p-2 border border-gray-300 rounded-lg shadow-sm text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-gray-300 dark:placeholder-gray-400"
+                                className="w-full p-2 border border-gray-700 rounded-lg shadow-sm text-sm dark:bg-slate-700 dark:border-slate-600 dark:text-gray-300 dark:placeholder-gray-400"
                                 disabled={isLoading}
                             />
                         </div>
                         <div>
-                            <p className="block text-xs font-medium text-gray-600 dark:text-gray-300 mb-1">File dati caricati in sessione</p>
-                            <div className="p-2 border border-gray-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 min-h-[42px]">
+                            <p className="block text-xs font-medium text-gray-400 dark:text-gray-300 mb-1">File dati caricati in sessione</p>
+                            <div className="p-2 border border-gray-700 dark:border-slate-600 rounded-lg bg-gray-900 dark:bg-slate-700 min-h-[42px]">
                                 {dataFiles.length === 0 
                                     ? <p className="text-xs text-gray-500 dark:text-gray-400 italic">Nessun file caricato. Usi l'icona 📎 per aggiungere file.</p>
                                     : <div className="flex flex-wrap gap-2">
@@ -470,7 +470,7 @@ Per le richieste di analisi, dati, e domande generali, struttura le tue risposte
                                     <button 
                                         key={reply}
                                         onClick={() => handleQuickReply(reply)}
-                                        className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-gray-200 dark:border-slate-600 text-xs font-medium text-gray-700 dark:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-slate-600 hover:border-gray-300 dark:hover:border-slate-500 transition-all"
+                                        className="px-3 py-1.5 bg-gray-900 dark:bg-slate-700 border border-gray-800 dark:border-slate-600 text-xs font-medium text-gray-300 dark:text-gray-300 rounded-full hover:bg-gray-900 dark:hover:bg-slate-600 hover:border-gray-700 dark:hover:border-slate-500 transition-all"
                                     >
                                         {reply}
                                     </button>
@@ -484,24 +484,24 @@ Per le richieste di analisi, dati, e domande generali, struttura le tue risposte
                         <button
                             onClick={() => fileInputRef.current?.click()}
                             disabled={isLoading}
-                            className="p-3 rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 hover:bg-gray-100 dark:hover:bg-slate-600 disabled:bg-gray-200 disabled:cursor-not-allowed transition-colors"
+                            className="p-3 rounded-lg border border-gray-700 dark:border-slate-600 bg-gray-900 dark:bg-slate-700 hover:bg-gray-900 dark:hover:bg-slate-600 disabled:bg-gray-200 disabled:cursor-not-allowed transition-colors"
                             aria-label="Allega file"
                         >
-                            <PaperclipIcon className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+                            <PaperclipIcon className="w-5 h-5 text-gray-400 dark:text-gray-300" />
                         </button>
                         <button
                             onClick={handleListen}
                             disabled={isLoading || !isSpeechRecognitionSupported}
-                            className={`p-3 rounded-lg border border-gray-300 dark:border-slate-600 transition-colors ${
+                            className={`p-3 rounded-lg border border-gray-700 dark:border-slate-600 transition-colors ${
                                 isListening
-                                ? 'bg-red-500 text-white hover:bg-red-600 ring-2 ring-red-500 ring-offset-2'
-                                : 'bg-white dark:bg-slate-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-600'
+                                ? 'bg-black0 text-white hover:bg-red-600 ring-2 ring-red-500 ring-offset-2'
+                                : 'bg-gray-900 dark:bg-slate-700 text-gray-400 dark:text-gray-300 hover:bg-gray-900 dark:hover:bg-slate-600'
                             } disabled:bg-gray-200 disabled:cursor-not-allowed`}
                             aria-label={isListening ? "Ferma registrazione" : "Avvia registrazione"}
                         >
                             {isListening ? (
                                 <span className="relative flex h-5 w-5">
-                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-gray-900 opacity-75"></span>
                                     <MicrophoneIcon className="relative inline-flex h-5 w-5" />
                                 </span>
                             ) : (
@@ -514,7 +514,7 @@ Per le richieste di analisi, dati, e domande generali, struttura le tue risposte
                             onKeyDown={handleKeyDown}
                             placeholder="Formuli la sua richiesta... (⌘+Enter per inviare)"
                             rows={3}
-                            className="w-full flex-1 p-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-lime-500 focus:border-lime-500 transition-colors text-sm resize-none dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-lime-500 dark:focus:border-lime-500"
+                            className="w-full flex-1 p-3 border border-gray-700 rounded-lg shadow-sm focus:ring-2 focus:ring-lime-500 focus:border-lime-500 transition-colors text-sm resize-none dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200 dark:placeholder-gray-400 dark:focus:ring-lime-500 dark:focus:border-lime-500"
                             disabled={isLoading}
                         />
                         <button

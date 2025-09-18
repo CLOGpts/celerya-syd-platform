@@ -1,0 +1,23 @@
+{
+  "instructions": {
+    "purpose": "Test di comunicazione tra agenti",
+    "created": "2025-09-17T18:00:00",
+    "agents_status": {
+      "syd_prototipo": {
+        "name": "Syd Prototipo Agent",
+        "status": "active",
+        "last_update": "2025-09-17T18:00:00",
+        "capabilities": ["PDF analysis", "Food safety", "Commercial docs"],
+        "ready": true
+      }
+    }
+  },
+  "messages": [
+    {
+      "agent": "syd_prototipo",
+      "timestamp": "2025-09-17T18:00:00",
+      "message": "Syd Prototipo Agent attivo e operativo! Pronto per analisi documenti e collaborazione con il team.",
+      "type": "status_update"
+    }
+  ]
+}

@@ -3,7 +3,7 @@ import { authService } from '../src/services/authService';
 import { SpinnerIcon } from './icons/SpinnerIcon';
 
 interface LoginPageProps {
-  onLoginSuccess: () => void;
+  onLoginSuccess?: () => void;
 }
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
@@ -25,7 +25,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       : await authService.register(email, password, displayName);
 
     if (result.success) {
-      onLoginSuccess();
+      onLoginSuccess?.();
     } else {
       setError(result.error || 'Errore sconosciuto');
     }
@@ -55,13 +55,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <div className="w-full max-w-md">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl p-8">
+        <div className="bg-gray-900 dark:bg-slate-800 rounded-2xl shadow-2xl p-8">
           {/* Logo/Title */}
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+            <h1 className="text-3xl font-bold text-slate-100 dark:text-white">
               Celerya Syd Platform
             </h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-2">
+            <p className="text-slate-400 dark:text-slate-400 mt-2">
               {isLogin ? 'Accedi al tuo account' : 'Crea un nuovo account'}
             </p>
           </div>
@@ -84,42 +84,42 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
               <div>
-                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-sm font-medium text-slate-300 dark:text-slate-300 mb-1">
                   Nome
                 </label>
                 <input
                   type="text"
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                  className="w-full px-4 py-2 border border-slate-700 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
                   placeholder="Il tuo nome"
                 />
               </div>
             )}
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-slate-300 dark:text-slate-300 mb-1">
                 Email
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                className="w-full px-4 py-2 border border-slate-700 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
                 placeholder="nome@azienda.com"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-sm font-medium text-slate-300 dark:text-slate-300 mb-1">
                 Password
               </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
+                className="w-full px-4 py-2 border border-slate-700 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-slate-700 dark:text-white"
                 placeholder="••••••••"
                 required
                 minLength={6}
@@ -152,7 +152,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               </button>
             )}
 
-            <div className="text-center text-sm text-slate-600 dark:text-slate-400">
+            <div className="text-center text-sm text-slate-400 dark:text-slate-400">
               {isLogin ? 'Non hai un account?' : 'Hai già un account?'}
               <button
                 onClick={() => {
