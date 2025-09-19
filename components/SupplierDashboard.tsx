@@ -98,27 +98,62 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
         setIsProcessing(true);
         setError(null);
 
+        console.log('🚀 Iniziando analisi documento:', file.name, 'Tipo:', file.type, 'Dimensione:', (file.size / 1024 / 1024).toFixed(2) + 'MB');
+
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            // Fix: Usa la chiave API corretta configurata in vite.config.ts
+            const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
+            console.log('🔑 API Key configurata:', apiKey ? 'SI' : 'NO', apiKey ? `(${apiKey.substring(0, 10)}...)` : '');
+
+            if (!apiKey) {
+                console.error('❌ API Key non trovata. Environment variables:', {
+                    API_KEY: process.env.API_KEY,
+                    GEMINI_API_KEY: process.env.GEMINI_API_KEY
+                });
+                throw new Error("API Key Google AI non configurata. Verifica il file .env.local");
+            }
+
+            console.log('🔧 Inizializzazione GoogleGenAI...');
+            const ai = new GoogleGenAI({ apiKey });  // Fix: passa oggetto con apiKey
+            console.log('✅ GoogleGenAI inizializzato correttamente');
             const customSchema = getCustomSchema();
             const dynamicPrompt = generatePromptFromSchema(customSchema);
             const imagePart = { inlineData: { mimeType: file.type, data: await fileToBase64(file) } };
             const textPart = { text: dynamicPrompt };
 
+            // Fix: Modello corretto per Gemini
+            console.log('📡 Invio richiesta a Gemini con modello gemini-2.5-flash...');
             const response = await ai.models.generateContent({
                 model: 'gemini-2.5-flash',
-                contents: { parts: [imagePart, textPart] },
+                contents: [{ parts: [imagePart, textPart] }],
                 config: { responseMimeType: "application/json" },
             });
-            
+
+            console.log('✅ Risposta ricevuta da Gemini:', response.text ? 'SI' : 'NO');
             let jsonStr = response.text.trim();
+            console.log('📝 Lunghezza risposta JSON:', jsonStr.length);
+
             const match = jsonStr.match(/^```(\w*)?\s*\n?(.*?)\n?\s*```$/s);
-            if (match && match[2]) jsonStr = match[2].trim();
-            
+            if (match && match[2]) {
+                console.log('🧹 Rimosso wrapper markdown dalla risposta');
+                jsonStr = match[2].trim();
+            }
+
+            console.log('🔍 Tentativo parsing JSON...');
             const parsedData = JSON.parse(jsonStr) as Product;
-            if(!parsedData.identificazione?.produttore) {
+            console.log('✅ JSON parsato con successo:', parsedData);
+
+            // Validazione più robusta della struttura
+            if (!parsedData || typeof parsedData !== 'object') {
+                throw new Error("Analisi fallita: risposta non valida da Gemini API");
+            }
+
+            if (!parsedData.identificazione || !parsedData.identificazione.produttore) {
+                console.warn('⚠️ Struttura JSON ricevuta:', JSON.stringify(parsedData, null, 2));
                 throw new Error("Analisi fallita: il documento non sembra una scheda tecnica valida. Produttore non trovato.");
             }
+
+            console.log('✅ Validazione completata. Produttore trovato:', parsedData.identificazione.produttore);
 
             const newEarning: SupplierEarning = {
                 id: generateUniqueId(),
@@ -131,12 +166,73 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
 
             setBalance(prev => prev + FEE_PER_DOCUMENT);
             setEarnings(prev => [newEarning, ...prev]);
+
+            // SALVA ANCHE IN celerya_suppliers_data PER LISTA DOCUMENTI
+            const customerSlug = slugify(selectedCustomer);
+            const supplierSlug = slugify(selectedSupplier);
+            console.log('💾 Preparazione salvataggio dati:', { customerSlug, supplierSlug });
+
+            const allSuppliersData = JSON.parse(localStorage.getItem('celerya_suppliers_data') || '{}');
+            console.log('📚 Dati esistenti localStorage:', Object.keys(allSuppliersData));
+
+            if (!allSuppliersData[customerSlug]) {
+                console.log('🆕 Creazione nuovo cliente:', customerSlug);
+                allSuppliersData[customerSlug] = { suppliers: {} };
+            }
+            if (!allSuppliersData[customerSlug].suppliers[supplierSlug]) {
+                console.log('🆕 Creazione nuovo fornitore:', supplierSlug);
+                allSuppliersData[customerSlug].suppliers[supplierSlug] = {
+                    name: selectedSupplier,
+                    lastUpdate: new Date().toISOString(),
+                    pdfs: {}
+                };
+            }
+
+            // Aggiungi il documento processato
+            const docId = generateUniqueId();
+            console.log('📄 Salvataggio documento con ID:', docId);
+
+            allSuppliersData[customerSlug].suppliers[supplierSlug].pdfs[docId] = {
+                ...parsedData,
+                id: docId,
+                savedAt: new Date().toISOString(),
+                fileName: file.name
+            };
+
+            // Aggiorna lastUpdate del fornitore
+            allSuppliersData[customerSlug].suppliers[supplierSlug].lastUpdate = new Date().toISOString();
+
+            console.log('💾 Salvataggio in localStorage...');
+            localStorage.setItem('celerya_suppliers_data', JSON.stringify(allSuppliersData));
+
+            // Verifica che il salvataggio sia andato a buon fine
+            const savedData = JSON.parse(localStorage.getItem('celerya_suppliers_data') || '{}');
+            const docCount = Object.keys(savedData[customerSlug]?.suppliers?.[supplierSlug]?.pdfs || {}).length;
+            console.log('✅ Documenti salvati per questo fornitore:', docCount);
+
             setToast({ message: `+${FEE_PER_DOCUMENT.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })} per l'analisi!`, type: 'success' });
             setFile(null);
 
         } catch (e: any) {
             console.error("Extraction failed:", e);
-            const errorMessage = e.message || "L'analisi del documento è fallita. Riprova.";
+
+            // Gestione errori più specifica
+            let errorMessage = "L'analisi del documento è fallita. Riprova.";
+
+            if (e.message?.includes("API Key")) {
+                errorMessage = "Errore di configurazione: API Key Google AI non valida o mancante.";
+            } else if (e.message?.includes("quota")) {
+                errorMessage = "Quota API Google AI esaurita. Riprova più tardi.";
+            } else if (e.message?.includes("network") || e.message?.includes("fetch")) {
+                errorMessage = "Errore di connessione. Verifica la tua connessione internet.";
+            } else if (e.message?.includes("produttore non trovato")) {
+                errorMessage = e.message; // Mantieni il messaggio specifico di validazione
+            } else if (e.name === "SyntaxError") {
+                errorMessage = "Errore di parsing: risposta API non valida. Il documento potrebbe non essere leggibile.";
+            } else if (e.message) {
+                errorMessage = e.message;
+            }
+
             setError(errorMessage);
             setToast({ message: errorMessage, type: 'error' });
         } finally {

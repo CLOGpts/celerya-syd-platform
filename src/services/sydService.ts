@@ -208,15 +208,21 @@ export const sydService = {
 
       const q = query(
         collection(db, 'sydAnalysis', userId, 'insights'),
-        where('actionTaken', '==', false),
-        orderBy('timestamp', 'desc')
+        where('actionTaken', '==', false)
       );
 
       const snapshot = await getDocs(q);
-      return snapshot.docs.map(doc => ({
+      // Ordina client-side per evitare index requirement
+      const insights = snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as SydInsight));
+
+      return insights.sort((a, b) => {
+        const aTime = a.timestamp?.toMillis() || 0;
+        const bTime = b.timestamp?.toMillis() || 0;
+        return bTime - aTime; // desc order
+      });
     } catch (error) {
       console.error('Errore nel recuperare insights:', error);
       return [];

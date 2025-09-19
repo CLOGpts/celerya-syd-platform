@@ -251,7 +251,7 @@ export const migrationService = {
         const allSuppliersData = JSON.parse(suppliersData);
         // Migrate suppliers and documents
         for (const [customerSlug, customerData] of Object.entries(allSuppliersData) as any) {
-          for (const [supplierSlug, supplierData] of Object.entries(customerData.suppliers)) {
+          for (const [supplierSlug, supplierData] of Object.entries(customerData.suppliers) as [string, any][]) {
             // Save supplier
             await supplierService.save(customerSlug, supplierSlug, supplierData as SupplierData);
             

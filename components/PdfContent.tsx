@@ -3,12 +3,14 @@ import React, { forwardRef, useMemo } from 'react';
 import type { Product, Alert, Section } from '../types';
 import { CELERYA_STANDARD } from '../constants';
 import DetailSection from './DetailSection';
+import DocumentSplitView from './DocumentSplitView';
 
 interface PdfContentProps {
   data: Product;
   alerts: Alert[];
   schema: Section[] | null;
   qrCodeDataUrl?: string;
+  originalFileUrl?: string | null;
 }
 
 const getFieldKeyMap = () => {
@@ -21,7 +23,7 @@ const getFieldKeyMap = () => {
     return map;
 }
 
-const PdfContent = forwardRef<HTMLDivElement, PdfContentProps>(({ data, alerts, schema, qrCodeDataUrl }, ref) => {
+const PdfContent = forwardRef<HTMLDivElement, PdfContentProps>(({ data, alerts, schema, qrCodeDataUrl, originalFileUrl }, ref) => {
   if (!data) return null;
 
   const fieldKeyMap = useMemo(() => getFieldKeyMap(), []);
@@ -57,7 +59,7 @@ const PdfContent = forwardRef<HTMLDivElement, PdfContentProps>(({ data, alerts, 
 
   }, [schema, data, fieldKeyMap]);
 
-  return (
+  const contentJsx = (
     <div ref={ref} className="p-4 sm:p-6 bg-gray-900 dark:bg-slate-800 rounded-lg relative">
         <header className="mb-8 text-center border-b border-gray-700 dark:border-slate-600 pb-6">
             <h2 className="text-3xl font-bold text-slate-100 dark:text-slate-100">{data.identificazione?.produttore}</h2>
@@ -77,7 +79,7 @@ const PdfContent = forwardRef<HTMLDivElement, PdfContentProps>(({ data, alerts, 
 
         <div className="md:columns-2 gap-6 space-y-6">
             {activeSections.map(section => (
-                <DetailSection 
+                <DetailSection
                     key={section.key}
                     title={section.title}
                     data={section.data}
@@ -88,6 +90,18 @@ const PdfContent = forwardRef<HTMLDivElement, PdfContentProps>(({ data, alerts, 
         </div>
     </div>
   );
+
+  // Se abbiamo un originalFileUrl, avvolgiamo in DocumentSplitView
+  if (originalFileUrl) {
+    return (
+      <DocumentSplitView originalFileUrl={originalFileUrl}>
+        {contentJsx}
+      </DocumentSplitView>
+    );
+  }
+
+  // Altrimenti restituiamo il contenuto normale
+  return contentJsx;
 });
 
 export default PdfContent;

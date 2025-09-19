@@ -1,8 +1,8 @@
 import React from 'react';
-import MainLayout from './components/layout/MainLayout';
+import MainLayoutContainer from './containers/MainLayoutContainer';
 
 function App() {
-  return <MainLayout />;
+  return <MainLayoutContainer />;
 }
 
 export default App;

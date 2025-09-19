@@ -132,6 +132,10 @@ const XIcon: React.FC<{className?: string}> = ({ className }) => (
 
 
 const DataViewPage: React.FC = () => {
+    console.log('🔥🔥🔥 DataViewPage RENDERING NOW');
+    console.log('🔥 Auth user:', auth.currentUser?.uid || 'NO USER');
+    console.log('🔥 Timestamp:', new Date().toISOString());
+
     const [messages, setMessages] = useState<{ role: 'user' | 'model'; text: string; sources?: any[]; offer?: CommercialOffer }[]>([
         { role: 'model', text: 'Buongiorno. Sono SYD, il suo Direttore Sistematico dei Rendimenti. Come posso assisterla oggi? Può caricare QUALSIASI tipo di documento (PDF, Excel, Word, Immagini, Video, ZIP, ecc.) o farmi una domanda.' }
     ]);
@@ -184,13 +188,17 @@ const DataViewPage: React.FC = () => {
     // Carica conversazioni recenti all'avvio per dare contesto
     useEffect(() => {
         const loadChatHistory = async () => {
-            // Aspetta che l'utente sia effettivamente loggato
-            if (!auth.currentUser) {
-                console.log('Utente non ancora loggato, aspetto...');
+            // Aspetta un attimo per essere sicuri che auth sia pronto
+            await new Promise(resolve => setTimeout(resolve, 1000));
+
+            // Ricontrolla l'utente
+            const user = auth.currentUser;
+            if (!user) {
+                console.log('No user after waiting');
                 return;
             }
 
-            console.log('Loading chat for user:', auth.currentUser.uid);
+            console.log('Loading chat for user:', user.uid);
 
             try {
                 // Carica TUTTE le conversazioni precedenti (aumentiamo il limite)

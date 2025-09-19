@@ -4,12 +4,14 @@ import type { AnalyzedCatalog } from '../types';
 import * as XLSX from 'xlsx';
 import { ExcelIcon } from './icons/ExcelIcon';
 import { ArrowLeftIcon } from './icons/ArrowLeftIcon';
+import DocumentSplitView from './DocumentSplitView';
 
 interface CatalogDataDisplayProps {
   data: AnalyzedCatalog;
   onAnalyzeAnother: () => void;
   customerName: string;
   onBack: () => void;
+  originalFileUrl?: string | null;
 }
 
 const InfoItem: React.FC<{ label: string; value?: string }> = ({ label, value }) => (
@@ -19,7 +21,7 @@ const InfoItem: React.FC<{ label: string; value?: string }> = ({ label, value })
     </div>
 );
 
-const CatalogDataDisplay: React.FC<CatalogDataDisplayProps> = ({ data, onAnalyzeAnother, customerName, onBack }) => {
+const CatalogDataDisplay: React.FC<CatalogDataDisplayProps> = ({ data, onAnalyzeAnother, customerName, onBack, originalFileUrl }) => {
     const handleDownloadExcel = () => {
         const wb = XLSX.utils.book_new();
         const ws_name = 'Catalogo Prodotti';
@@ -37,56 +39,58 @@ const CatalogDataDisplay: React.FC<CatalogDataDisplayProps> = ({ data, onAnalyze
     };
 
     return (
-        <div className="bg-gray-900 dark:bg-slate-800 p-6 rounded-xl shadow-sm h-full flex flex-col col-span-1 md:col-span-2">
-            <div className="flex justify-between items-center mb-6 gap-4">
-                <div className="flex items-center gap-4">
-                     <button onClick={onBack} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-400 dark:text-gray-400 transition-colors" aria-label="Torna alla dashboard del cliente"><ArrowLeftIcon className="w-6 h-6" /></button>
-                    <div>
-                        <h1 className="text-xl font-bold text-gray-200 dark:text-gray-100">Risultati Analisi Catalogo</h1>
-                        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Documento per <span className="font-semibold">{customerName}</span> analizzato.</p>
+        <DocumentSplitView originalFileUrl={originalFileUrl} className="col-span-1 md:col-span-2">
+            <div className="bg-gray-900 dark:bg-slate-800 p-6 h-full flex flex-col">
+                <div className="flex justify-between items-center mb-6 gap-4">
+                    <div className="flex items-center gap-4">
+                         <button onClick={onBack} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-slate-700 text-gray-400 dark:text-gray-400 transition-colors" aria-label="Torna alla dashboard del cliente"><ArrowLeftIcon className="w-6 h-6" /></button>
+                        <div>
+                            <h1 className="text-xl font-bold text-gray-200 dark:text-gray-100">Risultati Analisi Catalogo</h1>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">Documento per <span className="font-semibold">{customerName}</span> analizzato.</p>
+                        </div>
                     </div>
+                    <button onClick={onAnalyzeAnother} className="flex-shrink-0 flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-slate-800 hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-colors">Analizza un altro</button>
                 </div>
-                <button onClick={onAnalyzeAnother} className="flex-shrink-0 flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg text-white bg-slate-800 hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition-colors">Analizza un altro</button>
-            </div>
 
-            <dl className="grid grid-cols-2 gap-x-4 gap-y-4 p-4 bg-black dark:bg-slate-700/50 rounded-lg border border-gray-800 dark:border-slate-700 mb-6">
-                <InfoItem label="Nome Fornitore" value={data.nomeFornitore} />
-                <InfoItem label="Nome Catalogo" value={data.nomeCatalogo} />
-            </dl>
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-4 p-4 bg-black dark:bg-slate-700/50 rounded-lg border border-gray-800 dark:border-slate-700 mb-6">
+                    <InfoItem label="Nome Fornitore" value={data.nomeFornitore} />
+                    <InfoItem label="Nome Catalogo" value={data.nomeCatalogo} />
+                </dl>
 
-            <div className="flex justify-end mb-4">
-                <button
-                    onClick={handleDownloadExcel}
-                    className="flex items-center gap-2 px-3 py-1.5 border border-gray-700 dark:border-slate-600 rounded-md text-sm font-medium text-gray-300 dark:text-gray-300 bg-gray-900 dark:bg-slate-700 hover:bg-black dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lime-500 transition-all whitespace-nowrap"
-                >
-                    <ExcelIcon className="w-4 h-4 text-green-700 dark:text-green-500" />
-                    <span>Esporta Excel</span>
-                </button>
-            </div>
+                <div className="flex justify-end mb-4">
+                    <button
+                        onClick={handleDownloadExcel}
+                        className="flex items-center gap-2 px-3 py-1.5 border border-gray-700 dark:border-slate-600 rounded-md text-sm font-medium text-gray-300 dark:text-gray-300 bg-gray-900 dark:bg-slate-700 hover:bg-black dark:hover:bg-slate-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lime-500 transition-all whitespace-nowrap"
+                    >
+                        <ExcelIcon className="w-4 h-4 text-green-700 dark:text-green-500" />
+                        <span>Esporta Excel</span>
+                    </button>
+                </div>
 
-            <div className="flex-1 overflow-y-auto -mx-6 px-6">
-                <table className="w-full text-sm text-left">
-                    <thead className="bg-gray-900 dark:bg-slate-700 sticky top-0">
-                        <tr>
-                            <th className="px-4 py-3 font-semibold text-gray-400 dark:text-gray-300">Codice Articolo</th>
-                            <th className="px-4 py-3 font-semibold text-gray-400 dark:text-gray-300">Descrizione</th>
-                            <th className="px-4 py-3 font-semibold text-gray-400 dark:text-gray-300">Prezzo</th>
-                            <th className="px-4 py-3 font-semibold text-gray-400 dark:text-gray-300">Unità</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
-                        {data.prodotti.map((product, index) => (
-                            <tr key={index} className="hover:bg-black dark:hover:bg-slate-700/50">
-                                <td className="px-4 py-3 text-gray-400 dark:text-gray-400 font-mono">{product.codiceArticolo}</td>
-                                <td className="px-4 py-3 text-gray-200 dark:text-gray-200 font-medium">{product.descrizione}</td>
-                                <td className="px-4 py-3 text-gray-400 dark:text-gray-400">{product.prezzo?.toFixed(2)}</td>
-                                <td className="px-4 py-3 text-gray-400 dark:text-gray-400">{product.unitaMisura}</td>
+                <div className="flex-1 overflow-y-auto -mx-6 px-6">
+                    <table className="w-full text-sm text-left">
+                        <thead className="bg-gray-900 dark:bg-slate-700 sticky top-0">
+                            <tr>
+                                <th className="px-4 py-3 font-semibold text-gray-400 dark:text-gray-300">Codice Articolo</th>
+                                <th className="px-4 py-3 font-semibold text-gray-400 dark:text-gray-300">Descrizione</th>
+                                <th className="px-4 py-3 font-semibold text-gray-400 dark:text-gray-300">Prezzo</th>
+                                <th className="px-4 py-3 font-semibold text-gray-400 dark:text-gray-300">Unità</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
+                            {data.prodotti.map((product, index) => (
+                                <tr key={index} className="hover:bg-black dark:hover:bg-slate-700/50">
+                                    <td className="px-4 py-3 text-gray-400 dark:text-gray-400 font-mono">{product.codiceArticolo}</td>
+                                    <td className="px-4 py-3 text-gray-200 dark:text-gray-200 font-medium">{product.descrizione}</td>
+                                    <td className="px-4 py-3 text-gray-400 dark:text-gray-400">{product.prezzo?.toFixed(2)}</td>
+                                    <td className="px-4 py-3 text-gray-400 dark:text-gray-400">{product.unitaMisura}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
+        </DocumentSplitView>
     );
 };
 

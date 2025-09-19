@@ -28,7 +28,7 @@ interface DashboardContainerProps {
  * Interface per i dati da passare
  */
 export const DashboardContainer: React.FC<DashboardContainerProps> = ({
-  data = {},
+  data = {} as DashboardData,
   onRefresh,
   isLoading = false
 }) => {

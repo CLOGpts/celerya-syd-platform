@@ -239,6 +239,7 @@ const DashboardPage: React.FC = () => {
 
     // Schede Tecniche State
     const [file, setFile] = useState<File | null>(null);
+    const [originalFileUrl, setOriginalFileUrl] = useState<string | null>(null);
     const [isExtracting, setIsExtracting] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [extractedData, setExtractedData] = useState<Product | null>(null);
@@ -247,18 +248,21 @@ const DashboardPage: React.FC = () => {
     
     // DDT State
     const [transportFile, setTransportFile] = useState<File | null>(null);
+    const [transportFileUrl, setTransportFileUrl] = useState<string | null>(null);
     const [isAnalyzingTransport, setIsAnalyzingTransport] = useState(false);
     const [transportError, setTransportError] = useState<string | null>(null);
     const [transportData, setTransportData] = useState<AnalyzedTransportDocument | null>(null);
 
     // Catalog State
     const [catalogFile, setCatalogFile] = useState<File | null>(null);
+    const [catalogFileUrl, setCatalogFileUrl] = useState<string | null>(null);
     const [isAnalyzingCatalog, setIsAnalyzingCatalog] = useState(false);
     const [catalogError, setCatalogError] = useState<string | null>(null);
     const [catalogData, setCatalogData] = useState<AnalyzedCatalog | null>(null);
 
     // Price List State
     const [priceListFile, setPriceListFile] = useState<File | null>(null);
+    const [priceListFileUrl, setPriceListFileUrl] = useState<string | null>(null);
     const [isAnalyzingPriceList, setIsAnalyzingPriceList] = useState(false);
     const [priceListError, setPriceListError] = useState<string | null>(null);
     const [priceListData, setPriceListData] = useState<AnalyzedPriceList | null>(null);
@@ -281,6 +285,16 @@ const DashboardPage: React.FC = () => {
     }, []);
 
     useEffect(() => { loadCustomers(); }, [loadCustomers]);
+
+    // Cleanup blob URLs su unmount per prevenire memory leak
+    useEffect(() => {
+        return () => {
+            if (originalFileUrl) URL.revokeObjectURL(originalFileUrl);
+            if (transportFileUrl) URL.revokeObjectURL(transportFileUrl);
+            if (catalogFileUrl) URL.revokeObjectURL(catalogFileUrl);
+            if (priceListFileUrl) URL.revokeObjectURL(priceListFileUrl);
+        };
+    }, [originalFileUrl, transportFileUrl, catalogFileUrl, priceListFileUrl]);
     
     useEffect(() => {
         if (renamingCustomerId && renameInputRef.current) {
@@ -347,6 +361,11 @@ const DashboardPage: React.FC = () => {
     const handleExtract = async () => {
         if (!file || !selectedCustomer) return;
         setIsExtracting(true); setError(null); setExtractedData(null); setAlerts([]);
+
+        // Conserva l'URL del file originale per split-view
+        const fileUrl = URL.createObjectURL(file);
+        setOriginalFileUrl(fileUrl);
+
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const customSchema = getCustomSchema();
@@ -397,6 +416,11 @@ const DashboardPage: React.FC = () => {
     const handleAnalyzeTransport = async () => {
         if (!transportFile || !selectedCustomer) return;
         setIsAnalyzingTransport(true); setTransportError(null); setTransportData(null);
+
+        // Conserva l'URL del file originale per split-view
+        const fileUrl = URL.createObjectURL(transportFile);
+        setTransportFileUrl(fileUrl);
+
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const imagePart = { inlineData: { mimeType: transportFile.type, data: await fileToBase64(transportFile) } };
@@ -439,6 +463,11 @@ const DashboardPage: React.FC = () => {
     const handleAnalyzeCatalog = async () => {
         if (!catalogFile || !selectedCustomer) return;
         setIsAnalyzingCatalog(true); setCatalogError(null); setCatalogData(null);
+
+        // Conserva l'URL del file originale per split-view
+        const fileUrl = URL.createObjectURL(catalogFile);
+        setCatalogFileUrl(fileUrl);
+
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const imagePart = { inlineData: { mimeType: catalogFile.type, data: await fileToBase64(catalogFile) } };
@@ -485,6 +514,11 @@ const DashboardPage: React.FC = () => {
     const handleAnalyzePriceList = async () => {
         if (!priceListFile || !selectedCustomer) return;
         setIsAnalyzingPriceList(true); setPriceListError(null); setPriceListData(null);
+
+        // Conserva l'URL del file originale per split-view
+        const fileUrl = URL.createObjectURL(priceListFile);
+        setPriceListFileUrl(fileUrl);
+
         try {
             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
             const imagePart = { inlineData: { mimeType: priceListFile.type, data: await fileToBase64(priceListFile) } };
@@ -533,6 +567,25 @@ const DashboardPage: React.FC = () => {
     const status = extractedData ? getOverallStatus(alerts, t) : null;
     
     const resetState = () => {
+        // Cleanup blob URLs prima del reset per prevenire memory leak
+        if (originalFileUrl) {
+            URL.revokeObjectURL(originalFileUrl);
+            setOriginalFileUrl(null);
+        }
+        if (transportFileUrl) {
+            URL.revokeObjectURL(transportFileUrl);
+            setTransportFileUrl(null);
+        }
+        if (catalogFileUrl) {
+            URL.revokeObjectURL(catalogFileUrl);
+            setCatalogFileUrl(null);
+        }
+        if (priceListFileUrl) {
+            URL.revokeObjectURL(priceListFileUrl);
+            setPriceListFileUrl(null);
+        }
+
+        // Reset degli altri stati
         setFile(null); setExtractedData(null); setAlerts([]); setError(null); setActiveSchema(null);
         setTransportFile(null); setTransportData(null); setTransportError(null);
         setCatalogFile(null); setCatalogData(null); setCatalogError(null);
@@ -592,7 +645,7 @@ const DashboardPage: React.FC = () => {
                         <button onClick={handleGoToCustomerDashboard} className="px-4 py-2.5 bg-[#2a3447]/80 hover:bg-[#334155] text-slate-200 font-medium rounded-lg border border-slate-600/50 hover:border-slate-500 transition-all duration-200">{t('dashboard.analyze_another')}</button>
                     </div>
                     <div className="grid grid-cols-12 gap-8">
-                        <div className="col-span-12 lg:col-span-8"><div ref={pdfContentRef}><PdfContent data={extractedData} alerts={alerts} schema={activeSchema} /></div></div>
+                        <div className="col-span-12 lg:col-span-8"><div ref={pdfContentRef}><PdfContent data={extractedData} alerts={alerts} schema={activeSchema} originalFileUrl={originalFileUrl} /></div></div>
                         <div className="col-span-12 lg:col-span-4"><AlertsPanel alerts={alerts} status={status} t={t} /></div>
                     </div>
                 </div>
@@ -600,13 +653,13 @@ const DashboardPage: React.FC = () => {
         }
 
         if (transportData) {
-            return <TransportDataDisplay data={transportData} onAnalyzeAnother={handleGoToCustomerDashboard} customerName={selectedCustomer.name} onBack={handleGoToCustomerDashboard} />;
+            return <TransportDataDisplay data={transportData} onAnalyzeAnother={handleGoToCustomerDashboard} customerName={selectedCustomer.name} onBack={handleGoToCustomerDashboard} originalFileUrl={transportFileUrl} />;
         }
         if (catalogData) {
-            return <CatalogDataDisplay data={catalogData} onAnalyzeAnother={handleGoToCustomerDashboard} customerName={selectedCustomer.name} onBack={handleGoToCustomerDashboard} />;
+            return <CatalogDataDisplay data={catalogData} onAnalyzeAnother={handleGoToCustomerDashboard} customerName={selectedCustomer.name} onBack={handleGoToCustomerDashboard} originalFileUrl={catalogFileUrl} />;
         }
         if (priceListData) {
-            return <PriceListDataDisplay data={priceListData} onAnalyzeAnother={handleGoToCustomerDashboard} customerName={selectedCustomer.name} onBack={handleGoToCustomerDashboard} />;
+            return <PriceListDataDisplay data={priceListData} onAnalyzeAnother={handleGoToCustomerDashboard} customerName={selectedCustomer.name} onBack={handleGoToCustomerDashboard} originalFileUrl={priceListFileUrl} />;
         }
 
         // Default view: Upload boxes

@@ -117,7 +117,7 @@ const App: React.FC = () => {
     if (customersData) {
       try {
         const customers = JSON.parse(customersData);
-        const hasSuppliersData = customers.some((customer: Customer) =>
+        const hasSuppliersData = customers.some((customer: any) =>
           customer.allSuppliers || customer.lastSupplierData
         );
 
