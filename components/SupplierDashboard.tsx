@@ -166,7 +166,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                                 id="supplier-selector"
                                 value={selectedSupplier}
                                 onChange={(e) => setSelectedSupplier(e.target.value)}
-                                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-700 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200 focus:outline-none focus:ring-lime-500 focus:border-lime-500 sm:text-sm rounded-md shadow-sm"
+                                className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-gray-900 border-gray-700 text-gray-200 focus:outline-none focus:ring-lime-500 focus:border-lime-500 sm:text-sm rounded-md shadow-sm"
                             >
                                 {availableSuppliers.map(name => <option key={name} value={name}>{name}</option>)}
                             </select>
@@ -180,7 +180,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                                 id="customer-selector"
                                 value={selectedCustomer}
                                 onChange={(e) => setSelectedCustomer(e.target.value)}
-                                className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-700 dark:bg-slate-700 dark:border-slate-600 dark:text-gray-200 focus:outline-none focus:ring-lime-500 focus:border-lime-500 sm:text-sm rounded-md shadow-sm"
+                                className="mt-1 block w-full pl-3 pr-10 py-2 text-base bg-gray-900 border-gray-700 text-gray-200 focus:outline-none focus:ring-lime-500 focus:border-lime-500 sm:text-sm rounded-md shadow-sm"
                             >
                                 {availableCustomers.map(name => <option key={name} value={name}>{name}</option>)}
                             </select>
@@ -208,25 +208,25 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
 
                          {/* Automation Section */}
                         <div className="text-center">
-                            <h3 className="text-xl font-semibold text-gray-200 dark:text-gray-100">Oppure, automatizza il processo</h3>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Collega una cartella cloud e lascia che Celerya processi i file per te. <span className="font-semibold text-lime-600 dark:text-lime-400">Ideale e più conveniente per caricamenti frequenti.</span></p>
+                            <h3 className="text-xl font-semibold text-gray-200">Oppure, automatizza il processo</h3>
+                            <p className="text-sm text-gray-500 mt-1">Collega una cartella cloud e lascia che Celerya processi i file per te. <span className="font-semibold text-lime-400">Ideale e più conveniente per caricamenti frequenti.</span></p>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Google Drive Card */}
-                            <div className="bg-gray-900 dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-800 dark:border-slate-700 flex flex-col items-center text-center">
+                            <div className="bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-800 flex flex-col items-center text-center">
                                 <GoogleDriveIcon className="w-12 h-12" />
-                                <h4 className="mt-4 font-semibold text-gray-200 dark:text-gray-200">Google Drive</h4>
-                                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 flex-grow">Imposta una cartella condivisa per l'upload automatico.</p>
-                                <button className="mt-4 w-full px-4 py-2 border border-gray-700 dark:border-slate-600 text-sm font-medium rounded-lg text-gray-300 dark:text-gray-200 bg-gray-900 dark:bg-slate-700 hover:bg-black dark:hover:bg-slate-600">
+                                <h4 className="mt-4 font-semibold text-gray-200">Google Drive</h4>
+                                <p className="mt-1 text-xs text-gray-500 flex-grow">Imposta una cartella condivisa per l'upload automatico.</p>
+                                <button className="mt-4 w-full px-4 py-2 border border-gray-700 text-sm font-medium rounded-lg text-gray-300 bg-gray-800 hover:bg-gray-700">
                                     Collega (coming soon)
                                 </button>
                             </div>
                             {/* Microsoft OneDrive Card */}
-                            <div className="bg-gray-900 dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-800 dark:border-slate-700 flex flex-col items-center text-center">
+                            <div className="bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-800 flex flex-col items-center text-center">
                                 <MicrosoftIcon className="w-12 h-12" />
-                                <h4 className="mt-4 font-semibold text-gray-200 dark:text-gray-200">OneDrive</h4>
-                                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 flex-grow">Sincronizza i tuoi documenti da Microsoft 365.</p>
-                                <button className="mt-4 w-full px-4 py-2 border border-gray-700 dark:border-slate-600 text-sm font-medium rounded-lg text-gray-300 dark:text-gray-200 bg-gray-900 dark:bg-slate-700 hover:bg-black dark:hover:bg-slate-600">
+                                <h4 className="mt-4 font-semibold text-gray-200">OneDrive</h4>
+                                <p className="mt-1 text-xs text-gray-500 flex-grow">Sincronizza i tuoi documenti da Microsoft 365.</p>
+                                <button className="mt-4 w-full px-4 py-2 border border-gray-700 text-sm font-medium rounded-lg text-gray-300 bg-gray-800 hover:bg-gray-700">
                                     Collega (coming soon)
                                 </button>
                             </div>
@@ -236,30 +236,30 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                     {/* Right Column: Balance & History */}
                     <div className="lg:col-span-1 space-y-6">
                         {/* Balance Card */}
-                        <div className="bg-gray-900 dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-800 dark:border-slate-700">
+                        <div className="bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-800">
                             <div className="flex items-center gap-4">
-                                <div className="p-3 bg-lime-100 dark:bg-lime-900/50 rounded-full">
-                                    <WalletIcon className="w-6 h-6 text-lime-600 dark:text-lime-400" />
+                                <div className="p-3 bg-lime-900/30 rounded-full">
+                                    <WalletIcon className="w-6 h-6 text-lime-400" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-500 dark:text-gray-400">Saldo Disponibile</p>
-                                    <p className="text-2xl font-bold text-gray-100 dark:text-gray-200">
+                                    <p className="text-sm text-gray-400">Saldo Disponibile</p>
+                                    <p className="text-2xl font-bold text-gray-100">
                                         {balance.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}
                                     </p>
                                 </div>
                             </div>
-                            <button className="mt-4 w-full px-4 py-2 bg-slate-800 text-white text-sm font-semibold rounded-lg hover:bg-slate-900 transition-colors">
+                            <button className="mt-4 w-full px-4 py-2 bg-gray-800 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 transition-colors">
                                 Ritira Fondi
                             </button>
                         </div>
 
                         {/* History Card */}
-                        <div className="bg-gray-900 dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-800 dark:border-slate-700">
-                            <h3 className="text-lg font-semibold text-gray-200 dark:text-gray-100 mb-4">Cronologia Guadagni</h3>
+                        <div className="bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-800">
+                            <h3 className="text-lg font-semibold text-gray-200 mb-4">Cronologia Guadagni</h3>
                             <ul className="space-y-4 max-h-96 overflow-y-auto pr-2 -mr-4">
                                 {sortedEarnings.length > 0 ? sortedEarnings.map(earning => (
                                     <li key={earning.id} className="flex items-center gap-4">
-                                        <div className="p-2.5 bg-gray-900 dark:bg-slate-700 rounded-full">
+                                        <div className="p-2.5 bg-gray-800 rounded-full">
                                             {earning.status === 'approved' ? (
                                                 <CheckCircleIcon className="w-5 h-5 text-green-500" />
                                             ) : (
@@ -267,17 +267,17 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                                             )}
                                         </div>
                                         <div className="flex-grow">
-                                            <p className="text-sm font-medium text-gray-200 dark:text-gray-200 truncate">{earning.documentName}</p>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                                            <p className="text-sm font-medium text-gray-200 truncate">{earning.documentName}</p>
+                                            <p className="text-xs text-gray-400">
                                                 {new Date(earning.date).toLocaleString('it-IT')} &middot; {earning.documentType}
                                             </p>
                                         </div>
-                                        <p className="text-sm font-semibold text-green-600 dark:text-green-400">
+                                        <p className="text-sm font-semibold text-green-400">
                                             +{earning.fee.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}
                                         </p>
                                     </li>
                                 )) : (
-                                    <p className="text-sm text-center text-gray-500 dark:text-gray-400 py-6">Nessun guadagno registrato.</p>
+                                    <p className="text-sm text-center text-gray-400 py-6">Nessun guadagno registrato.</p>
                                 )}
                             </ul>
                         </div>
