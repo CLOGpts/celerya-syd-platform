@@ -207,26 +207,27 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                         />
 
                          {/* Automation Section */}
-                        <div className="text-center">
-                            <h3 className="text-xl font-semibold text-gray-200">Oppure, automatizza il processo</h3>
-                            <p className="text-sm text-gray-500 mt-1">Collega una cartella cloud e lascia che Celerya processi i file per te. <span className="font-semibold text-lime-400">Ideale e più conveniente per caricamenti frequenti.</span></p>
+                        <div className="text-center p-8 bg-gray-900/50 rounded-xl border border-gray-800">
+                            <h3 className="text-2xl font-bold text-white mb-2">Oppure, automatizza il processo</h3>
+                            <p className="text-sm text-gray-400">Collega una cartella cloud e lascia che Celerya processi i file per te.</p>
+                            <p className="text-sm font-semibold text-lime-400 mt-2">Ideale e più conveniente per caricamenti frequenti.</p>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {/* Google Drive Card */}
-                            <div className="bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-800 flex flex-col items-center text-center">
+                            <div className="bg-gray-900/80 p-6 rounded-xl shadow-lg border border-gray-700 flex flex-col items-center text-center hover:bg-gray-900 transition-colors">
                                 <GoogleDriveIcon className="w-12 h-12" />
-                                <h4 className="mt-4 font-semibold text-gray-200">Google Drive</h4>
-                                <p className="mt-1 text-xs text-gray-500 flex-grow">Imposta una cartella condivisa per l'upload automatico.</p>
-                                <button className="mt-4 w-full px-4 py-2 border border-gray-700 text-sm font-medium rounded-lg text-gray-300 bg-gray-800 hover:bg-gray-700">
+                                <h4 className="mt-4 font-bold text-white">Google Drive</h4>
+                                <p className="mt-2 text-sm text-gray-400 flex-grow">Imposta una cartella condivisa per l'upload automatico.</p>
+                                <button className="mt-4 w-full px-4 py-2.5 border border-gray-600 text-sm font-semibold rounded-lg text-white bg-gray-800/80 hover:bg-gray-700 transition-all hover:border-gray-500">
                                     Collega (coming soon)
                                 </button>
                             </div>
                             {/* Microsoft OneDrive Card */}
-                            <div className="bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-800 flex flex-col items-center text-center">
+                            <div className="bg-gray-900/80 p-6 rounded-xl shadow-lg border border-gray-700 flex flex-col items-center text-center hover:bg-gray-900 transition-colors">
                                 <MicrosoftIcon className="w-12 h-12" />
-                                <h4 className="mt-4 font-semibold text-gray-200">OneDrive</h4>
-                                <p className="mt-1 text-xs text-gray-500 flex-grow">Sincronizza i tuoi documenti da Microsoft 365.</p>
-                                <button className="mt-4 w-full px-4 py-2 border border-gray-700 text-sm font-medium rounded-lg text-gray-300 bg-gray-800 hover:bg-gray-700">
+                                <h4 className="mt-4 font-bold text-white">OneDrive</h4>
+                                <p className="mt-2 text-sm text-gray-400 flex-grow">Sincronizza i tuoi documenti da Microsoft 365.</p>
+                                <button className="mt-4 w-full px-4 py-2.5 border border-gray-600 text-sm font-semibold rounded-lg text-white bg-gray-800/80 hover:bg-gray-700 transition-all hover:border-gray-500">
                                     Collega (coming soon)
                                 </button>
                             </div>
