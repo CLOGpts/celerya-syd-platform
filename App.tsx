@@ -8,9 +8,9 @@ import DocumentViewer from './components/DocumentViewer';
 import { ResourceViewerPage } from './components/ResourceViewerPage';
 import DDTViewerPage from './components/DDTViewerPage';
 import LoginPage from './components/LoginPage';
-import ExcelUploaderPage from './components/ExcelUploaderPage';
-import SemanticSearchPage from './components/SemanticSearchPage';
-import LLMExcelPage from './components/LLMExcelPage';
+import ExcelUploaderPage from './components/experimental/ExcelUploaderPage';
+import SemanticSearchPage from './components/experimental/SemanticSearchPage';
+import LLMExcelPage from './components/experimental/LLMExcelPage';
 import { SpinnerIcon } from './components/icons/SpinnerIcon';
 import type { Product, Alert, Section, AnalyzedTransportDocument, Customer, AllSuppliersData } from './types';
 import { getCustomSchema, generateAlertsFromSchema } from './constants';
@@ -238,28 +238,58 @@ const App: React.FC = () => {
                   {[
                     { id: 'Dashboard', label: 'Dashboard', icon: '📊' },
                     { id: 'SYD AGENT', label: 'SYD Agent', icon: '🤖' },
-                    { id: 'Lista Fornitori', label: 'Lista Fornitori', icon: '👥' },
-                    { id: 'Excel Upload', label: 'Excel Upload', icon: '📤' },
-                    { id: 'Ricerca Semantica', label: 'Ricerca Semantica', icon: '🔍' },
-                    { id: 'LLM Excel', label: 'LLM Excel', icon: '📑' },
+                    { id: 'Lista Documenti', label: 'Lista Documenti', icon: '📄' },
+                    { id: 'divider1', label: 'divider', icon: '' },
+                    { id: 'Excel Upload', label: 'Excel Upload [BETA]', icon: '🧪', beta: true },
+                    { id: 'Ricerca Semantica', label: 'Ricerca Semantica [BETA]', icon: '🔬', beta: true },
+                    { id: 'LLM Excel', label: 'LLM Excel [BETA]', icon: '⚗️', beta: true },
+                    { id: 'divider2', label: 'divider', icon: '' },
                     { id: 'Impostazioni', label: 'Impostazioni', icon: '⚙️' }
-                  ].map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => setActivePage(item.id)}
-                      className={`
-                        w-full px-4 py-3 rounded-lg flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-3'} transition-all duration-200
-                        ${activePage === item.id
-                          ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium shadow-lg shadow-blue-500/30 transform scale-105'
-                          : 'text-slate-400 hover:bg-white/5 hover:text-white'
-                        }
-                      `}
-                      title={sidebarCollapsed ? item.label : undefined}
-                    >
-                      <span className="text-lg">{item.icon}</span>
-                      {!sidebarCollapsed && <span className="font-medium">{item.label}</span>}
-                    </button>
-                  ))}
+                  ].map((item) => {
+                    // Render divider
+                    if (item.label === 'divider') {
+                      return (
+                        <div key={item.id} className="my-2">
+                          <hr className="border-gray-700/50" />
+                          {!sidebarCollapsed && (
+                            <div className="text-xs text-gray-500 uppercase tracking-wider mt-2 mb-1 px-2">
+                              {item.id === 'divider1' ? 'Sperimentale' : ''}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    // Render menu button
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={() => setActivePage(item.id)}
+                        className={`
+                          w-full px-4 py-3 rounded-lg flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-3'} transition-all duration-200
+                          ${activePage === item.id
+                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white font-medium shadow-lg shadow-blue-500/30 transform scale-105'
+                            : item.beta
+                              ? 'text-amber-400 hover:bg-amber-900/20 hover:text-amber-300'
+                              : 'text-slate-400 hover:bg-white/5 hover:text-white'
+                          }
+                        `}
+                        title={sidebarCollapsed ? item.label : undefined}
+                      >
+                        <span className="text-lg">{item.icon}</span>
+                        {!sidebarCollapsed && (
+                          <span className="font-medium flex items-center gap-2">
+                            {item.label}
+                            {item.beta && (
+                              <span className="text-xs px-1.5 py-0.5 bg-amber-500/20 text-amber-400 rounded-full">
+                                BETA
+                              </span>
+                            )}
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               </nav>
 
@@ -298,7 +328,7 @@ const App: React.FC = () => {
             <main className="flex-1 overflow-y-auto bg-[#1e293b] p-6">  {/* Blu scuro ESATTO come SYD Cyber */}
               {activePage === 'Dashboard' && <DashboardPage />}
               {activePage === 'SYD AGENT' && <DataViewPage />}
-              {activePage === 'Lista Fornitori' && <SuppliersListPage />}
+              {activePage === 'Lista Documenti' && <SuppliersListPage />}
               {activePage === 'Excel Upload' && <ExcelUploaderPage />}
               {activePage === 'Ricerca Semantica' && <SemanticSearchPage />}
               {activePage === 'LLM Excel' && <LLMExcelPage />}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { semanticSearchService } from '../src/services/semanticSearchService';
-import { SpinnerIcon } from './icons/SpinnerIcon';
+import { semanticSearchService } from '../../src/services/semanticSearchService';
+import { SpinnerIcon } from '../icons/SpinnerIcon';
 
 const SemanticSearchPage: React.FC = () => {
   const [query, setQuery] = useState('');

@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { llmForExcel } from '../src/services/llmForExcel';
-import { SpinnerIcon } from './icons/SpinnerIcon';
+import { llmForExcel } from '../../src/services/llmForExcel';
+import { SpinnerIcon } from '../icons/SpinnerIcon';
 import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../src/config/firebase';
+import { db } from '../../src/config/firebase';
 
 const LLMExcelPage: React.FC = () => {
   // Prova con entrambi i possibili nomi

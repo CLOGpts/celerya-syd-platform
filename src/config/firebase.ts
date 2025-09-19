@@ -3,7 +3,7 @@ import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-// Firebase configuration
+// Firebase configuration - Using the working Firebase project
 const firebaseConfig = {
   apiKey: "AIzaSyDAc-Fp6WWB8c7d1TPSlJiFvVVwxSPHo3E",
   authDomain: "adept-presence-464522-s3.firebaseapp.com",

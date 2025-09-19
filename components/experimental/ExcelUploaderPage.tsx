@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { excelUploader } from '../src/services/excelToFirebase';
-import { authService } from '../src/services/authService';
-import { SpinnerIcon } from './icons/SpinnerIcon';
-import { CheckCircleIcon } from './icons/CheckCircleIcon';
-import { ExcelIcon } from './icons/ExcelIcon';
+import { excelUploader } from '../../src/services/excelToFirebase';
+import { authService } from '../../src/services/authService';
+import { SpinnerIcon } from '../icons/SpinnerIcon';
+import { CheckCircleIcon } from '../icons/CheckCircleIcon';
+import { ExcelIcon } from '../icons/ExcelIcon';
 import PdfToExcel from './PdfToExcel';
 
 const ExcelUploaderPage: React.FC = () => {
