@@ -184,7 +184,13 @@ const DataViewPage: React.FC = () => {
     // Carica conversazioni recenti all'avvio per dare contesto
     useEffect(() => {
         const loadChatHistory = async () => {
-            if (!auth.currentUser) return;
+            // Aspetta che l'utente sia effettivamente loggato
+            if (!auth.currentUser) {
+                console.log('Utente non ancora loggato, aspetto...');
+                return;
+            }
+
+            console.log('Loading chat for user:', auth.currentUser.uid);
 
             try {
                 // Carica TUTTE le conversazioni precedenti (aumentiamo il limite)
@@ -226,7 +232,18 @@ const DataViewPage: React.FC = () => {
             }
         };
 
+        // Aggiungi un listener per l'auth state
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            if (user) {
+                console.log('User authenticated:', user.uid);
+                loadChatHistory();
+            }
+        });
+
+        // Prima prova immediata
         loadChatHistory();
+
+        return () => unsubscribe();
     }, []);
 
     const handleClearChat = async () => {

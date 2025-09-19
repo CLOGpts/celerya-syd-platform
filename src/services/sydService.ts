@@ -130,7 +130,11 @@ export const sydService = {
   async getRecentConversations(limitCount: number = 5): Promise<SydConversation[]> {
     try {
       const userId = auth.currentUser?.uid;
-      if (!userId) return [];
+      console.log('Getting conversations for user:', userId);
+      if (!userId) {
+        console.log('No user ID found');
+        return [];
+      }
 
       const q = query(
         collection(db, 'sydAnalysis', userId, 'conversations'),
@@ -139,6 +143,8 @@ export const sydService = {
       );
 
       const snapshot = await getDocs(q);
+      console.log('Found conversations:', snapshot.size);
+
       return snapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
