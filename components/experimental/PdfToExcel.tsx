@@ -438,7 +438,7 @@ IMPORTANT: The response should consist ONLY of this single JSON object.`
                     >
                         <input
                             type="file"
-                            accept=".pdf,.png,.jpg,.jpeg,.xlsx,.xls,.csv,image/*"
+                            accept="*"
                             onChange={handleFileSelect}
                             className="hidden"
                             id="file-to-excel"
@@ -466,10 +466,10 @@ IMPORTANT: The response should consist ONLY of this single JSON object.`
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                     </svg>
                                     <p className="text-sm text-slate-400 dark:text-slate-400">
-                                        Clicca o trascina un file PDF, immagine, Excel o CSV
+                                        Clicca o trascina qualsiasi file
                                     </p>
                                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                                        Estrae automaticamente le tabelle e le converte in Excel
+                                        Supporta TUTTI i formati di documenti
                                     </p>
                                 </div>
                             )}

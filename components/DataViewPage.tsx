@@ -133,7 +133,7 @@ const XIcon: React.FC<{className?: string}> = ({ className }) => (
 
 const DataViewPage: React.FC = () => {
     const [messages, setMessages] = useState<{ role: 'user' | 'model'; text: string; sources?: any[]; offer?: CommercialOffer }[]>([
-        { role: 'model', text: 'Buongiorno. Sono SYD, il suo Direttore Sistematico dei Rendimenti. Come posso assisterla oggi? Può iniziare caricando i suoi file .xlsx o facendomi una domanda.' }
+        { role: 'model', text: 'Buongiorno. Sono SYD, il suo Direttore Sistematico dei Rendimenti. Come posso assisterla oggi? Può caricare QUALSIASI tipo di documento (PDF, Excel, Word, Immagini, Video, ZIP, ecc.) o farmi una domanda.' }
     ]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -246,7 +246,7 @@ const DataViewPage: React.FC = () => {
             if (success) {
                 // Reset alla chat iniziale
                 setMessages([
-                    { role: 'model', text: 'Buongiorno. Sono SYD, il suo Direttore Sistematico dei Rendimenti. Come posso assisterla oggi? Può iniziare caricando i suoi file .xlsx o facendomi una domanda.' }
+                    { role: 'model', text: 'Buongiorno. Sono SYD, il suo Direttore Sistematico dei Rendimenti. Come posso assisterla oggi? Può caricare QUALSIASI tipo di documento (PDF, Excel, Word, Immagini, Video, ZIP, ecc.) o farmi una domanda.' }
                 ]);
                 setError(null);
             } else {
@@ -734,7 +734,7 @@ Quando richiesto "crea Excel" o "esporta", risposta SOLO JSON:
                     )}
                     
                     <div className="flex items-end gap-2">
-                        <input type="file" ref={fileInputRef} onChange={handleFileAdd} className="hidden" accept=".xlsx,.xls,.csv,.png,.jpg,.jpeg,.pdf" />
+                        <input type="file" ref={fileInputRef} onChange={handleFileAdd} className="hidden" accept="*" multiple />
                         <button
                             onClick={() => fileInputRef.current?.click()}
                             disabled={isLoading}

@@ -167,7 +167,7 @@ const ExcelUploaderPage: React.FC = () => {
               onDrop={(e) => {
                 e.preventDefault();
                 const droppedFile = e.dataTransfer.files[0];
-                if (droppedFile && (droppedFile.name.endsWith('.xlsx') || droppedFile.name.endsWith('.xls'))) {
+                if (droppedFile) {
                   setFile(droppedFile);
                   setResult(null);
                 }
@@ -176,7 +176,7 @@ const ExcelUploaderPage: React.FC = () => {
             >
               <input
                 type="file"
-                accept=".xlsx,.xls"
+                accept="*"
                 onChange={handleFileSelect}
                 className="hidden"
                 id="excel-file"
@@ -200,7 +200,7 @@ const ExcelUploaderPage: React.FC = () => {
                   <div className="text-center">
                     <ExcelIcon className="w-12 h-12 mx-auto text-slate-400 mb-2" />
                     <p className="text-sm text-slate-400 dark:text-slate-400">
-                      Clicca per selezionare o trascina un file Excel
+                      Clicca per selezionare o trascina qualsiasi file
                     </p>
                   </div>
                 )}

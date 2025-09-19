@@ -551,7 +551,7 @@ const SuppliersListPage: React.FC = () => {
 
     return (
         <div className="p-8">
-            <h1 className="text-3xl font-bold text-gray-200 dark:text-gray-100 mb-6">Lista Fornitori</h1>
+            <h1 className="text-3xl font-bold text-gray-200 dark:text-gray-100 mb-6">📄 Lista Documenti</h1>
 
             <div className="bg-gray-900 dark:bg-slate-800 rounded-lg shadow-sm border border-gray-800 dark:border-slate-700 overflow-hidden">
                 <table className="w-full text-sm">

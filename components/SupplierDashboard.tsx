@@ -10,7 +10,7 @@ import { getCustomSchema, generatePromptFromSchema } from '../constants';
 import { GoogleDriveIcon } from './icons/GoogleDriveIcon';
 import { MicrosoftIcon } from './icons/MicrosoftIcon';
 
-const FEE_PER_DOCUMENT = 0.15;
+const FEE_PER_DOCUMENT = 0.15; // € 0.15 per ogni documento caricato
 
 const generateUniqueId = (): string => `txn-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 const fileToBase64 = (file: File): Promise<string> => {
@@ -123,7 +123,7 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
             const newEarning: SupplierEarning = {
                 id: generateUniqueId(),
                 documentName: file.name,
-                documentType: 'Scheda Tecnica',
+                documentType: file.type.startsWith('image/') ? 'Immagine' : file.type.includes('pdf') ? 'PDF' : 'Documento',
                 fee: FEE_PER_DOCUMENT,
                 date: new Date().toISOString(),
                 status: 'approved',
@@ -195,14 +195,14 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                     <div className="lg:col-span-2 space-y-8">
                         <UploadBox 
                             title={`Carica un documento per ${selectedCustomer}`}
-                            description="Trascina una scheda tecnica per ricevere la tua fee istantanea."
+                            description="Trascina qualsiasi documento per ricevere la tua fee istantanea. Guadagna € 0.15 per ogni documento caricato!"
                             actionButtonText={file ? "Carica e Guadagna" : "Analizza e Guadagna"}
                             file={file}
                             isProcessing={isProcessing}
                             onFileChange={handleFileChange}
                             onAction={handleAnalyze}
                             error={error}
-                            acceptedFileTypes=".pdf,.doc,.docx,image/jpeg,image/png"
+                            acceptedFileTypes="*"
                             idPrefix="supplier-upload"
                         />
 
