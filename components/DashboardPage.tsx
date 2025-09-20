@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { Product, Alert, AnalyzedTransportDocument, Section, Customer, AllSuppliersData, AnalyzedCatalog, AnalyzedPriceList } from '../types';
 import PdfContent from './PdfContent';
 import { getCustomSchema, generateAlertsFromSchema, generatePromptFromSchema } from '../constants';
@@ -367,19 +367,23 @@ const DashboardPage: React.FC = () => {
         setOriginalFileUrl(fileUrl);
 
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+            if (!apiKey) throw new Error("API Key Gemini non configurata");
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
             const customSchema = getCustomSchema();
             const dynamicPrompt = generatePromptFromSchema(customSchema);
-            const imagePart = { inlineData: { mimeType: file.type, data: await fileToBase64(file) } };
-            const textPart = { text: dynamicPrompt };
+            const imageData = await fileToBase64(file);
+            const imagePart = { inlineData: { mimeType: file.type, data: imageData } };
 
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: { parts: [imagePart, textPart] },
-                config: { responseMimeType: "application/json" },
-            });
+            const result = await model.generateContent([
+                dynamicPrompt,
+                imagePart
+            ]);
+            const response = await result.response;
             
-            let jsonStr = response.text.trim();
+            let jsonStr = response.text();
             const match = jsonStr.match(/^```(\w*)?\s*\n?(.*?)\n?\s*```$/s);
             if (match && match[2]) jsonStr = match[2].trim();
             
@@ -422,17 +426,21 @@ const DashboardPage: React.FC = () => {
         setTransportFileUrl(fileUrl);
 
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const imagePart = { inlineData: { mimeType: transportFile.type, data: await fileToBase64(transportFile) } };
-            const textPart = { text: transportPrompt };
+            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+            if (!apiKey) throw new Error("API Key Gemini non configurata");
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: { parts: [imagePart, textPart] },
-                config: { responseMimeType: "application/json" },
-            });
+            const imageData = await fileToBase64(transportFile);
+            const imagePart = { inlineData: { mimeType: transportFile.type, data: imageData } };
+
+            const result = await model.generateContent([
+                transportPrompt,
+                imagePart
+            ]);
+            const response = await result.response;
             
-            let jsonStr = response.text.trim();
+            let jsonStr = response.text();
             const match = jsonStr.match(/^```(\w*)?\s*\n?(.*?)\n?\s*```$/s);
             if (match && match[2]) jsonStr = match[2].trim();
             
@@ -469,17 +477,21 @@ const DashboardPage: React.FC = () => {
         setCatalogFileUrl(fileUrl);
 
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const imagePart = { inlineData: { mimeType: catalogFile.type, data: await fileToBase64(catalogFile) } };
-            const textPart = { text: catalogPrompt };
+            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+            if (!apiKey) throw new Error("API Key Gemini non configurata");
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: { parts: [imagePart, textPart] },
-                config: { responseMimeType: "application/json" },
-            });
+            const imageData = await fileToBase64(catalogFile);
+            const imagePart = { inlineData: { mimeType: catalogFile.type, data: imageData } };
 
-            let jsonStr = response.text.trim();
+            const result = await model.generateContent([
+                catalogPrompt,
+                imagePart
+            ]);
+            const response = await result.response;
+
+            let jsonStr = response.text();
             const match = jsonStr.match(/^```(\w*)?\s*\n?(.*?)\n?\s*```$/s);
             if (match && match[2]) jsonStr = match[2].trim();
 
@@ -520,17 +532,21 @@ const DashboardPage: React.FC = () => {
         setPriceListFileUrl(fileUrl);
 
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            const imagePart = { inlineData: { mimeType: priceListFile.type, data: await fileToBase64(priceListFile) } };
-            const textPart = { text: priceListPrompt };
+            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+            if (!apiKey) throw new Error("API Key Gemini non configurata");
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: { parts: [imagePart, textPart] },
-                config: { responseMimeType: "application/json" },
-            });
+            const imageData = await fileToBase64(priceListFile);
+            const imagePart = { inlineData: { mimeType: priceListFile.type, data: imageData } };
 
-            let jsonStr = response.text.trim();
+            const result = await model.generateContent([
+                priceListPrompt,
+                imagePart
+            ]);
+            const response = await result.response;
+
+            let jsonStr = response.text();
             const match = jsonStr.match(/^```(\w*)?\s*\n?(.*?)\n?\s*```$/s);
             if (match && match[2]) jsonStr = match[2].trim();
 

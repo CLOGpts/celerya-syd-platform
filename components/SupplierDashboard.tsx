@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import UploadBox from './UploadBox';
 import { WalletIcon } from './icons/WalletIcon';
 import { ClockIcon } from './icons/ClockIcon';
@@ -9,6 +9,9 @@ import type { SupplierEarning, Product } from '../types';
 import { getCustomSchema, generatePromptFromSchema } from '../constants';
 import { GoogleDriveIcon } from './icons/GoogleDriveIcon';
 import { MicrosoftIcon } from './icons/MicrosoftIcon';
+import { auth } from '../src/config/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import sydService from '../src/services/sydService';
 
 const FEE_PER_DOCUMENT = 0.15; // € 0.15 per ogni documento caricato
 
@@ -101,39 +104,43 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
         console.log('🚀 Iniziando analisi documento:', file.name, 'Tipo:', file.type, 'Dimensione:', (file.size / 1024 / 1024).toFixed(2) + 'MB');
 
         try {
-            // Fix: Usa la chiave API corretta configurata in vite.config.ts
-            const apiKey = process.env.API_KEY || process.env.GEMINI_API_KEY;
-            console.log('🔑 API Key configurata:', apiKey ? 'SI' : 'NO', apiKey ? `(${apiKey.substring(0, 10)}...)` : '');
+            // Usa la chiave API corretta di Gemini
+            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+            console.log('🔑 API Key Gemini configurata:', apiKey ? 'SI' : 'NO', apiKey ? `(${apiKey.substring(0, 10)}...)` : '');
 
             if (!apiKey) {
-                console.error('❌ API Key non trovata. Environment variables:', {
-                    API_KEY: process.env.API_KEY,
-                    GEMINI_API_KEY: process.env.GEMINI_API_KEY
-                });
-                throw new Error("API Key Google AI non configurata. Verifica il file .env.local");
+                console.error('❌ API Key Gemini non trovata');
+                throw new Error("API Key Gemini non configurata. Aggiungi VITE_GEMINI_API_KEY nel file .env");
             }
 
-            console.log('🔧 Inizializzazione GoogleGenAI...');
-            const ai = new GoogleGenAI({ apiKey });  // Fix: passa oggetto con apiKey
-            console.log('✅ GoogleGenAI inizializzato correttamente');
+            console.log('🔧 Inizializzazione Google Generative AI...');
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+            console.log('✅ Gemini 2.5 Flash inizializzato correttamente');
             const customSchema = getCustomSchema();
             const dynamicPrompt = generatePromptFromSchema(customSchema);
-            const imagePart = { inlineData: { mimeType: file.type, data: await fileToBase64(file) } };
-            const textPart = { text: dynamicPrompt };
 
-            // Fix: Modello corretto per Gemini
-            console.log('📡 Invio richiesta a Gemini con modello gemini-2.5-flash...');
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: [{ parts: [imagePart, textPart] }],
-                config: { responseMimeType: "application/json" },
-            });
+            // Prepara l'immagine per Gemini
+            const imageData = await fileToBase64(file);
+            const imagePart = {
+                inlineData: {
+                    mimeType: file.type,
+                    data: imageData
+                }
+            };
 
-            console.log('✅ Risposta ricevuta da Gemini:', response.text ? 'SI' : 'NO');
-            let jsonStr = response.text.trim();
+            console.log('📡 Invio richiesta a Gemini 2.5 Flash...');
+            const result = await model.generateContent([
+                dynamicPrompt,
+                imagePart
+            ]);
+            const response = await result.response;
+
+            console.log('✅ Risposta ricevuta da Gemini 2.5 Flash');
+            let jsonStr = response.text();
             console.log('📝 Lunghezza risposta JSON:', jsonStr.length);
 
-            const match = jsonStr.match(/^```(\w*)?\s*\n?(.*?)\n?\s*```$/s);
+            const match = jsonStr.match(/^```(\w*)?\s*\n?(.*?)\n?\s*```$/);
             if (match && match[2]) {
                 console.log('🧹 Rimosso wrapper markdown dalla risposta');
                 jsonStr = match[2].trim();
@@ -209,6 +216,25 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
             const savedData = JSON.parse(localStorage.getItem('celerya_suppliers_data') || '{}');
             const docCount = Object.keys(savedData[customerSlug]?.suppliers?.[supplierSlug]?.pdfs || {}).length;
             console.log('✅ Documenti salvati per questo fornitore:', docCount);
+
+            // 🔥 CHIRURGIA: Integrazione Firebase per persistenza
+            try {
+                await sydService.saveConversation(
+                    `Analisi documento: ${file.name}`,
+                    JSON.stringify(parsedData, null, 2),
+                    {
+                        documentType: file.type,
+                        supplier: selectedSupplier,
+                        customer: selectedCustomer,
+                        fileName: file.name,
+                        fee: FEE_PER_DOCUMENT,
+                        extractedData: parsedData
+                    }
+                );
+                console.log('💾 Documento salvato anche in Firebase');
+            } catch (firebaseError) {
+                console.warn('⚠️ Salvataggio Firebase fallito, mantenuto localStorage:', firebaseError);
+            }
 
             setToast({ message: `+${FEE_PER_DOCUMENT.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })} per l'analisi!`, type: 'success' });
             setFile(null);

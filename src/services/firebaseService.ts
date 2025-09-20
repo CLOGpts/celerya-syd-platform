@@ -124,37 +124,47 @@ export const supplierService = {
 export const documentService = {
   // Save document (PDF, DDT, Catalog, etc.)
   async save(
-    customerId: string, 
-    supplierSlug: string, 
+    customerId: string,
+    supplierSlug: string,
     documentType: DocumentType,
     documentId: string,
     documentData: any,
     file?: File
   ) {
-    let fileUrl = null;
-    
-    // Upload file to Storage if provided
-    if (file) {
-      const storageRef = ref(
-        storage, 
-        `documents/${customerId}/${supplierSlug}/${documentType}/${documentId}`
-      );
-      const snapshot = await uploadBytes(storageRef, file);
-      fileUrl = await getDownloadURL(snapshot.ref);
+    try {
+      if (!customerId || !supplierSlug || !documentId) {
+        throw new Error('Missing required parameters');
+      }
+
+      let fileUrl = null;
+
+      // Upload file to Storage if provided
+      if (file) {
+        const storageRef = ref(
+          storage,
+          `documents/${customerId}/${supplierSlug}/${documentType}/${documentId}`
+        );
+        const snapshot = await uploadBytes(storageRef, file);
+        fileUrl = await getDownloadURL(snapshot.ref);
+      }
+
+      // Save metadata to Firestore
+      const docRef = doc(db, COLLECTIONS.DOCUMENTS, documentId);
+      await setDoc(docRef, {
+        ...documentData,
+        customerId,
+        supplierSlug,
+        documentType,
+        fileUrl,
+        savedAt: serverTimestamp()
+      });
+
+      console.log('Document saved successfully:', documentId);
+      return documentId;
+    } catch (error) {
+      console.error('Error saving document:', error);
+      throw error;
     }
-    
-    // Save metadata to Firestore
-    const docRef = doc(db, COLLECTIONS.DOCUMENTS, documentId);
-    await setDoc(docRef, {
-      ...documentData,
-      customerId,
-      supplierSlug,
-      documentType,
-      fileUrl,
-      savedAt: serverTimestamp()
-    });
-    
-    return documentId;
   },
 
   // Get documents by type
@@ -163,19 +173,30 @@ export const documentService = {
     supplierSlug: string,
     documentType: DocumentType
   ): Promise<any[]> {
-    const q = query(
-      collection(db, COLLECTIONS.DOCUMENTS),
-      where('customerId', '==', customerId),
-      where('supplierSlug', '==', supplierSlug),
-      where('documentType', '==', documentType),
-      orderBy('savedAt', 'desc')
-    );
-    
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
+    try {
+      const q = query(
+        collection(db, COLLECTIONS.DOCUMENTS),
+        where('customerId', '==', customerId),
+        where('supplierSlug', '==', supplierSlug),
+        where('documentType', '==', documentType)
+      );
+
+      const querySnapshot = await getDocs(q);
+      // Client-side sort per evitare compound index
+      const documents = querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      return documents.sort((a, b) => {
+        const aTime = a.savedAt?.toMillis() || 0;
+        const bTime = b.savedAt?.toMillis() || 0;
+        return bTime - aTime; // desc order
+      });
+    } catch (error) {
+      console.error('Error fetching documents by type:', error);
+      return [];
+    }
   },
 
   // Get single document

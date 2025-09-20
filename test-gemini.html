@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Gemini 2.5 Flash API</title>
+    <style>
+        body {
+            background: #111;
+            color: #0f0;
+            font-family: monospace;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: #000;
+            border: 1px solid #0f0;
+            padding: 20px;
+        }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            margin: 10px;
+            font-weight: bold;
+        }
+        #output {
+            background: #000;
+            border: 1px solid #333;
+            padding: 10px;
+            margin: 20px 0;
+            min-height: 200px;
+        }
+        .success { color: #0f0; }
+        .error { color: #f00; }
+        .info { color: #0ff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 TEST GEMINI 2.5 FLASH API</h1>
+
+        <button onclick="testGeminiText()">📝 Test Testo</button>
+        <button onclick="testGeminiImage()">🖼️ Test Immagine</button>
+        <button onclick="testFullAnalysis()">🔬 Test Analisi Completa</button>
+
+        <div id="output"></div>
+    </div>
+
+    <script type="module">
+        import { GoogleGenerativeAI } from 'https://esm.run/@google/generative-ai';
+
+        const API_KEY = 'AIzaSyAKO92WcvLKSMWgaE0DcAVQnblgSLSCNWw';
+        const output = document.getElementById('output');
+
+        function log(msg, type = 'info') {
+            const line = document.createElement('div');
+            line.className = type;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+            output.appendChild(line);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        window.testGeminiText = async function() {
+            log('🚀 Avvio test testo...', 'info');
+            try {
+                const genAI = new GoogleGenerativeAI(API_KEY);
+                const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+                const result = await model.generateContent('Dimmi in 10 parole cosa sei.');
+                const response = await result.response;
+                const text = response.text();
+
+                log(`✅ Risposta: ${text}`, 'success');
+            } catch (error) {
+                log(`❌ Errore: ${error.message}`, 'error');
+            }
+        }
+
+        window.testGeminiImage = async function() {
+            log('🖼️ Test analisi immagine...', 'info');
+            try {
+                const genAI = new GoogleGenerativeAI(API_KEY);
+                const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+                // Immagine di test (1x1 pixel rosso base64)
+                const imageData = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg==';
+
+                const imagePart = {
+                    inlineData: {
+                        mimeType: 'image/png',
+                        data: imageData
+                    }
+                };
+
+                const result = await model.generateContent([
+                    'Descrivi questa immagine in formato JSON: {"colore": "...", "tipo": "..."}',
+                    imagePart
+                ]);
+                const response = await result.response;
+                const text = response.text();
+
+                log(`✅ Analisi immagine: ${text}`, 'success');
+            } catch (error) {
+                log(`❌ Errore immagine: ${error.message}`, 'error');
+            }
+        }
+
+        window.testFullAnalysis = async function() {
+            log('🔬 Test analisi completa fornitore...', 'info');
+            try {
+                const genAI = new GoogleGenerativeAI(API_KEY);
+                const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+                const prompt = `
+                Analizza questo fornitore fittizio e rispondi in JSON:
+                {
+                    "nome": "Test Fornitore SRL",
+                    "prodotti": ["Pasta", "Olio", "Vino"],
+                    "analisi": {
+                        "qualita": 8,
+                        "prezzo": 7,
+                        "affidabilita": 9
+                    }
+                }
+
+                Rispondi SOLO con JSON valido, niente altro testo.
+                `;
+
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                let text = response.text();
+
+                // Pulisci eventuale markdown
+                text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+
+                try {
+                    const json = JSON.parse(text);
+                    log('✅ JSON Parsato con successo:', 'success');
+                    log(JSON.stringify(json, null, 2), 'info');
+                } catch (e) {
+                    log('⚠️ Risposta ricevuta ma non è JSON valido:', 'error');
+                    log(text, 'info');
+                }
+
+            } catch (error) {
+                log(`❌ Errore analisi: ${error.message}`, 'error');
+                log(`Stack: ${error.stack}`, 'error');
+            }
+        }
+
+        // Test automatico all'avvio
+        window.addEventListener('load', () => {
+            log('Sistema test pronto. API Key configurata.', 'info');
+            log(`Modello: gemini-2.5-flash`, 'info');
+        });
+    </script>
+</body>
+</html>

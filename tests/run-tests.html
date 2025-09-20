@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firebase Persistence Test Suite</title>
+    <style>
+        body {
+            background: #111;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+        }
+        .test-container {
+            background: #000;
+            border: 1px solid #0f0;
+            padding: 20px;
+            border-radius: 5px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #0ff;
+            text-align: center;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-left: 3px solid #333;
+        }
+        .pass { border-left-color: #0f0; }
+        .fail { border-left-color: #f00; }
+        .running { border-left-color: #ff0; }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 10px;
+        }
+        button:hover {
+            background: #0ff;
+        }
+        #console {
+            background: #000;
+            border: 1px solid #333;
+            padding: 10px;
+            margin-top: 20px;
+            height: 300px;
+            overflow-y: auto;
+            font-size: 12px;
+        }
+        .log-entry {
+            margin: 2px 0;
+        }
+        .error { color: #f00; }
+        .success { color: #0f0; }
+        .info { color: #0ff; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🧪 FIREBASE PERSISTENCE TEST SUITE</h1>
+
+        <div style="text-align: center;">
+            <button onclick="runTests()">▶️ ESEGUI TUTTI I TEST</button>
+            <button onclick="clearConsole()">🗑️ PULISCI CONSOLE</button>
+            <button onclick="testSingleSave()">💾 TEST SALVATAGGIO</button>
+            <button onclick="testQuery()">🔍 TEST QUERY</button>
+        </div>
+
+        <div id="test-results"></div>
+
+        <h3 style="color: #0ff;">📊 Console Output:</h3>
+        <div id="console"></div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import {
+            getFirestore,
+            collection,
+            addDoc,
+            getDocs,
+            query,
+            where,
+            orderBy,
+            limit
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import {
+            getAuth,
+            signInAnonymously
+        } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        // IMPORTANTE: Sostituisci con le tue credenziali Firebase
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        window.log = function(message, type = 'info') {
+            const console = document.getElementById('console');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            console.appendChild(entry);
+            console.scrollTop = console.scrollHeight;
+        }
+
+        window.clearConsole = function() {
+            document.getElementById('console').innerHTML = '';
+            log('Console pulita', 'info');
+        }
+
+        window.runTests = async function() {
+            log('🚀 Avvio test suite...', 'info');
+            const results = document.getElementById('test-results');
+            results.innerHTML = '';
+
+            // Test 1: Autenticazione
+            try {
+                log('Test autenticazione anonima...', 'info');
+                const userCredential = await signInAnonymously(auth);
+                log(`✅ Auth OK - User ID: ${userCredential.user.uid}`, 'success');
+                addResult('Autenticazione', true);
+            } catch (error) {
+                log(`❌ Auth fallita: ${error.message}`, 'error');
+                addResult('Autenticazione', false, error.message);
+            }
+
+            // Test 2: Salvataggio SYD Conversation
+            try {
+                log('Test salvataggio conversazione SYD...', 'info');
+                const userId = auth.currentUser?.uid;
+                if (!userId) throw new Error('Utente non autenticato');
+
+                const conversationData = {
+                    userMessage: 'Test messaggio utente',
+                    aiResponse: 'Test risposta AI',
+                    timestamp: new Date(),
+                    context: {
+                        fileNames: ['test.xlsx'],
+                        analysisType: 'test'
+                    }
+                };
+
+                const docRef = await addDoc(
+                    collection(db, 'sydAnalysis', userId, 'conversations'),
+                    conversationData
+                );
+                log(`✅ Conversazione salvata - ID: ${docRef.id}`, 'success');
+                addResult('Salvataggio SYD', true, docRef.id);
+            } catch (error) {
+                log(`❌ Salvataggio SYD fallito: ${error.message}`, 'error');
+                addResult('Salvataggio SYD', false, error.message);
+            }
+
+            // Test 3: Salvataggio Documento
+            try {
+                log('Test salvataggio documento...', 'info');
+                const userId = auth.currentUser?.uid;
+                if (!userId) throw new Error('Utente non autenticato');
+
+                const documentData = {
+                    name: 'test-document.pdf',
+                    type: 'DDT',
+                    supplier: 'Test Fornitore',
+                    uploadDate: new Date(),
+                    userId: userId,
+                    size: 2048,
+                    analysis: {
+                        summary: 'Test analysis summary',
+                        products: [],
+                        totals: {}
+                    }
+                };
+
+                const docRef = await addDoc(
+                    collection(db, 'documents'),
+                    documentData
+                );
+                log(`✅ Documento salvato - ID: ${docRef.id}`, 'success');
+                addResult('Salvataggio Documento', true, docRef.id);
+            } catch (error) {
+                log(`❌ Salvataggio documento fallito: ${error.message}`, 'error');
+                addResult('Salvataggio Documento', false, error.message);
+            }
+
+            // Test 4: Query senza Index
+            try {
+                log('Test query senza index (client-side sort)...', 'info');
+                const userId = auth.currentUser?.uid;
+                if (!userId) throw new Error('Utente non autenticato');
+
+                const startTime = Date.now();
+
+                // Query senza orderBy (evita index requirement)
+                const q = query(
+                    collection(db, 'sydAnalysis', userId, 'insights'),
+                    where('actionTaken', '==', false),
+                    limit(10)
+                );
+
+                const snapshot = await getDocs(q);
+                const docs = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data()
+                }));
+
+                // Client-side sort
+                docs.sort((a, b) => {
+                    const aTime = a.timestamp?.toMillis() || 0;
+                    const bTime = b.timestamp?.toMillis() || 0;
+                    return bTime - aTime;
+                });
+
+                const queryTime = Date.now() - startTime;
+                log(`✅ Query OK - ${docs.length} docs in ${queryTime}ms`, 'success');
+                addResult('Query Performance', true, `${queryTime}ms`);
+            } catch (error) {
+                log(`❌ Query fallita: ${error.message}`, 'error');
+                addResult('Query Performance', false, error.message);
+            }
+
+            // Test 5: Salvataggio Supplier
+            try {
+                log('Test salvataggio fornitore...', 'info');
+                const userId = auth.currentUser?.uid;
+                if (!userId) throw new Error('Utente non autenticato');
+
+                const supplierData = {
+                    name: 'Test Fornitore SRL',
+                    email: 'test@fornitore.com',
+                    phone: '+39 123 456789',
+                    userId: userId,
+                    createdAt: new Date(),
+                    catalogo: [],
+                    analysisResults: {
+                        lastUpdate: new Date(),
+                        totalProducts: 0,
+                        averagePrice: 0
+                    }
+                };
+
+                const docRef = await addDoc(
+                    collection(db, 'suppliers'),
+                    supplierData
+                );
+                log(`✅ Fornitore salvato - ID: ${docRef.id}`, 'success');
+                addResult('Salvataggio Fornitore', true, docRef.id);
+            } catch (error) {
+                log(`❌ Salvataggio fornitore fallito: ${error.message}`, 'error');
+                addResult('Salvataggio Fornitore', false, error.message);
+            }
+
+            log('🏁 Test suite completata!', 'info');
+        }
+
+        window.testSingleSave = async function() {
+            log('💾 Test salvataggio singolo...', 'info');
+            try {
+                await signInAnonymously(auth);
+                const testData = {
+                    test: true,
+                    timestamp: new Date(),
+                    message: 'Test salvataggio diretto'
+                };
+                const docRef = await addDoc(collection(db, 'test-collection'), testData);
+                log(`✅ Salvato con successo - ID: ${docRef.id}`, 'success');
+            } catch (error) {
+                log(`❌ Errore: ${error.message}`, 'error');
+            }
+        }
+
+        window.testQuery = async function() {
+            log('🔍 Test query...', 'info');
+            try {
+                await signInAnonymously(auth);
+                const q = query(collection(db, 'test-collection'), limit(10));
+                const snapshot = await getDocs(q);
+                log(`✅ Query OK - ${snapshot.size} documenti trovati`, 'success');
+                snapshot.forEach(doc => {
+                    log(`  📄 ${doc.id}: ${JSON.stringify(doc.data())}`, 'info');
+                });
+            } catch (error) {
+                log(`❌ Errore query: ${error.message}`, 'error');
+            }
+        }
+
+        function addResult(testName, passed, details = '') {
+            const results = document.getElementById('test-results');
+            const div = document.createElement('div');
+            div.className = `test-result ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `
+                <strong>${testName}:</strong>
+                ${passed ? '✅ PASS' : '❌ FAIL'}
+                ${details ? `<br><small>${details}</small>` : ''}
+            `;
+            results.appendChild(div);
+        }
+
+        // Auto-login all'avvio
+        window.addEventListener('load', () => {
+            log('Sistema test pronto. Clicca "ESEGUI TUTTI I TEST" per iniziare.', 'info');
+        });
+    </script>
+</body>
+</html>

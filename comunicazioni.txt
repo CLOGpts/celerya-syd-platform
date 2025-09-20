@@ -88,7 +88,91 @@ NOTE FINALI
 
 -----------------------------------------------------------------------------------------------------------------
 
-Per creare dei subagenti con Claude che collaborino all’interno dello stesso progetto, è necessario definire ogni subagente come file markdown nella cartella dedicata e specificarne compiti, prompt e strumenti da usare.
+==========================
+🔑 LA CHIAVE: TRASFORMAZIONE ×3 DI OGNI AGENTE
+==========================
+
+STRUTTURA FRATTALE DEL RAGIONAMENTO M³:
+
+         CLAUDE (Orchestratore)
+                |
+         [Identifica Problema]
+                |
+         [Sceglie 1 dei 3 Agenti]
+                ↓
+    ┌───────────┼───────────┐
+    │           │           │
+GUARDIANO   ARCHITETTO   CHIRURGO
+    │           │           │
+    └───────────┼───────────┘
+                |
+         [L'Agente Scelto]
+                |
+    🔑 SI MOLTIPLICA ×3 INTERNAMENTE:
+                |
+    ┌───────────┼───────────┐
+    │           │           │
+ BUILDER    CHECKER     DECIDER
+(propone)  (verifica)   (decide)
+    │           │           │
+    └───────────┼───────────┘
+                |
+         OGNUNO APPLICA 3 BIAS:
+                |
+    ┌───────────┼───────────┐
+    │           │           │
+  Bias 1     Bias 2      Bias 3
+    │           │           │
+    └───────────┼───────────┘
+
+= 1×3×3×3 = 27 MICRO-PROSPETTIVE → 1 SOLUZIONE OTTIMALE
+
+ESEMPIO CONCRETO - IL GUARDIANO SI TRASFORMA:
+
+class GuardianoMind:
+    def ragiona(problema):
+        # Il Guardiano non è uno, ma TRE:
+
+        builder_interno = {
+            "velocità": "Grep errori rapido",
+            "sicurezza": "Scan vulnerabilità",
+            "semplicità": "Console.log basico"
+        }
+
+        checker_interno = {
+            "misurabilità": "Errori contati: 5",
+            "robustezza": "Test coverage: 80%",
+            "reversibilità": "Rollback ready"
+        }
+
+        decider_interno = {
+            "criterio": "Se tutti check OK",
+            "azione": "Applica fix",
+            "fallback": "Piano B se 3 fail"
+        }
+
+        # 3×3×3 = 27 micro-decisioni
+        return soluzione_ottimale
+
+LA FORMULA CHE GUIDA LA TRASFORMAZIONE:
+
+Per ogni livello di trasformazione:
+L(p_i) = costo di ogni micro-proposta
+Φ(s) = energia totale che deve scendere a 0
+
+Il sistema GARANTISCE convergenza perché:
+- 27 prospettive = almeno una trova la via
+- Formula Φ convessa = minimo globale esiste
+- Fallback dopo 3 tentativi = mai loop infiniti
+
+INSIGHT CHIAVE 🌟:
+Non è che "uso" 3 agenti.
+È che OGNI agente È INTERNAMENTE 3 agenti.
+Come un cristallo con 27 facce che riflettono il problema.
+
+-----------------------------------------------------------------------------------------------------------------
+
+Per creare dei subagenti con Claude che collaborino all'interno dello stesso progetto, è necessario definire ogni subagente come file markdown nella cartella dedicata e specificarne compiti, prompt e strumenti da usare.
 
 Creazione dei subagenti
 Crea una cartella .claude/agents/ nel tuo progetto.

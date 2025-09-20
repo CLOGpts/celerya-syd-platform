@@ -139,25 +139,27 @@ export class QueryInterpreter {
   
   /**
    * Costruisce una query Firestore dall'interpretazione
+   * NOTA: orderBy con where multipli può richiedere index compound
    */
   buildFirestoreQuery(collectionName: string, interpretation: InterpretedQuery): Query<DocumentData> {
     let q = collection(db, collectionName) as Query<DocumentData>;
-    
+
     // Applica filtri
     interpretation.filters.forEach(filter => {
       q = query(q, where(filter.field, filter.operator, filter.value));
     });
-    
-    // Applica ordinamento
-    if (interpretation.sorting) {
+
+    // Applica ordinamento solo se non ci sono filtri multipli
+    // Per evitare index requirement con where + orderBy
+    if (interpretation.sorting && interpretation.filters.length <= 1) {
       q = query(q, orderBy(interpretation.sorting.field, interpretation.sorting.direction));
     }
-    
+
     // Applica limite
     if (interpretation.limit) {
       q = query(q, firestoreLimit(interpretation.limit));
     }
-    
+
     return q;
   }
   

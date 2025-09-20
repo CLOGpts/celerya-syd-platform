@@ -1,7 +1,7 @@
 
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import * as XLSX from 'xlsx';
 import { SpinnerIcon } from './icons/SpinnerIcon';
 import { SendIcon } from './icons/SendIcon';
@@ -332,7 +332,12 @@ const DataViewPage: React.FC = () => {
         }
 
         try {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+            if (!apiKey) {
+                throw new Error("API Key Gemini non configurata. Aggiungi VITE_GEMINI_API_KEY nel file .env");
+            }
+            const genAI = new GoogleGenerativeAI(apiKey);
+            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
             
             const savedData = JSON.parse(localStorage.getItem('celerya_suppliers_data') || '{}');
 
@@ -556,13 +561,10 @@ Quando richiesto "crea Excel" o "esporta", risposta SOLO JSON:
                 });
             }
 
-            const response = await ai.models.generateContent({
-                model: 'gemini-2.5-flash',
-                contents: { parts: promptParts },
-                config: { systemInstruction: systemInstruction }
-            });
+            const result = await model.generateContent(promptParts);
+            const response = await result.response;
             
-            const responseText = response.text.trim();
+            const responseText = response.text();
             let isHandled = false;
 
             try {
