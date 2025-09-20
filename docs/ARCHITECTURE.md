@@ -131,77 +131,127 @@ Syd_Prototipo/
 │   ├── tsconfig.json         # TypeScript configuration
 │   ├── vite.config.js        # Vite bundler config
 │   ├── tailwind.config.js    # Tailwind CSS config
-│   └── .env                  # Environment variables
+│   ├── .env.local            # Environment variables
+│   └── .gitignore           # Git ignore rules
 │
-├── 🎨 src/                   # Source code
+├── 🤖 .claude/              # Claude AI Agents (M³ Framework)
+│   └── agents/
+│       ├── il-guardiano.md  # Test & Debug Specialist
+│       ├── il-chirurgo.md   # Frontend & UX Specialist
+│       └── l-architetto.md  # Backend & Integration Master
+│
+├── 🎨 src/                  # Source code
 │   ├── config/
-│   │   └── firebase.ts       # Firebase initialization
+│   │   └── firebase.ts      # Firebase initialization
 │   │
-│   ├── services/             # Business logic services
-│   │   ├── authService.ts    # Authentication logic
+│   ├── services/            # Business logic services
+│   │   ├── authService.ts   # Authentication logic
 │   │   ├── firebaseService.ts # Database operations
-│   │   ├── sydService.ts     # AI agent memory
+│   │   ├── sydService.ts    # AI agent memory (ANTIFRAGILE)
 │   │   ├── semanticSearchService.ts # Search engine
 │   │   ├── semanticAnalyzer.ts # Document analysis
 │   │   ├── queryInterpreter.ts # Query processing
-│   │   ├── llmForExcel.ts   # Excel AI integration
-│   │   └── excelToFirebase.ts # Excel data import
+│   │   ├── llmForExcel.ts  # Excel AI integration
+│   │   ├── excelToFirebase.ts # Excel data import
+│   │   ├── errorInterceptor.ts # Error monitoring system
+│   │   └── liveLogStream.ts # Live logging system
 │   │
 │   ├── styles/
-│   │   └── SydDesignSystem.ts # Design tokens
+│   │   ├── global.css       # Global styles
+│   │   ├── SydDesignSystem.ts # Design tokens
+│   │   ├── SydPlatformTheme.ts # Platform theme
+│   │   └── SydTheme.ts      # Theme configuration
 │   │
-│   └── integration/
-│       └── UIBridge.tsx      # UI integration layer
+│   ├── integration/
+│   │   └── UIBridge.tsx     # UI integration layer
+│   │
+│   ├── containers/          # Container components
+│   │   ├── DashboardContainer.tsx
+│   │   └── MainLayoutContainer.tsx
+│   │
+│   └── ui-components/       # Reusable UI components
+│       ├── buttons/
+│       ├── cards/
+│       └── layout/
 │
-├── 🧩 components/            # React components
+├── 🧩 components/           # React components
 │   ├── Core Pages
-│   │   ├── App.tsx           # Root component
-│   │   ├── LoginPage.tsx     # Authentication
+│   │   ├── LoginPage.tsx    # Authentication
 │   │   ├── DashboardPage.tsx # Main dashboard
-│   │   ├── DataViewPage.tsx  # SYD Agent interface
-│   │   ├── SettingsPage.tsx  # User settings
+│   │   ├── DataViewPage.tsx # SYD Agent interface (Firebase-ready)
+│   │   ├── SettingsPage.tsx # User settings
 │   │   └── SuppliersListPage.tsx # Supplier management
 │   │
-│   ├── experimental/ 🧪      # Beta features (in testing)
-│   │   ├── ExcelUploaderPage.tsx # Data import [BETA]
-│   │   ├── SemanticSearchPage.tsx # Document search [BETA]
-│   │   ├── LLMExcelPage.tsx  # AI Excel analysis [BETA]
-│   │   ├── PdfToExcel.tsx    # PDF conversion [BETA]
-│   │   └── README.md         # Beta documentation
+│   ├── experimental/ 🧪     # Beta features
+│   │   ├── ExcelUploaderPage.tsx # Data import
+│   │   ├── SemanticSearchPage.tsx # Document search
+│   │   ├── LLMExcelPage.tsx # AI Excel analysis
+│   │   └── PdfToExcel.tsx   # PDF conversion
 │   │
-│   ├── Feature Pages
+│   ├── Feature Components
 │   │   ├── SupplierDashboard.tsx # Supplier portal
-│   │   └── DDTViewerPage.tsx # Document viewer
-│   │
-│   ├── UI Components
-│   │   ├── Sidebar.tsx       # Navigation sidebar
+│   │   ├── DDTViewerPage.tsx # Document viewer
+│   │   ├── DocumentSplitView.tsx # Split view interface
 │   │   ├── DocumentViewer.tsx # PDF/Document display
-│   │   ├── ResourceViewerPage.tsx # Resource details
-│   │   ├── McpFileSelector.tsx # File selection
-│   │   └── CommercialOfferDisplay.tsx # Offer display
+│   │   ├── CatalogCreator.tsx # Catalog management
+│   │   └── MCPIntegration.tsx # MCP system integration
 │   │
-│   └── icons/                # Icon components
+│   └── icons/               # Icon components (40+ icons)
 │       ├── SpinnerIcon.tsx
 │       ├── SendIcon.tsx
-│       └── [...other icons]
+│       └── [38 other icons]
 │
-├── 🌐 contexts/              # React contexts
-│   ├── AuthContext.tsx       # Authentication state
-│   └── LanguageContext.tsx   # i18n support
+├── 🌐 contexts/             # React contexts
+│   ├── AuthContext.tsx      # Authentication state
+│   ├── LanguageContext.tsx  # i18n support (IT/EN)
+│   └── ThemeContext.tsx     # Theme management
 │
-├── 📝 types/                 # TypeScript definitions
-│   └── index.d.ts           # Type definitions
+├── 📊 data/                 # Static data files
+│   └── products.ts          # Product data
 │
-├── 🗂️ constants/             # App constants
-│   └── index.ts             # Configuration constants
+├── 📚 docs/                 # Documentation (ORGANIZED)
+│   ├── ARCHITECTURE.md      # This file
+│   ├── API_DOCUMENTATION.md # API documentation
+│   ├── M3_FRAMEWORK_COMPLETO.md # M³ Framework guide
+│   ├── comunicazioni.txt    # Communication protocols
+│   └── firebase-rules-CORRETTE.txt # Firebase security rules
 │
-├── 📊 Database/              # Local data (dev only)
-│   └── *.xlsx               # Sample data files
+├── 🖼️ immagini/            # Image assets
+│   ├── dashboard.png
+│   └── [other images]
 │
-└── 📚 Documentation
-    ├── ARCHITECTURE.md      # This file
-    ├── API.md              # API documentation
-    └── DEPLOYMENT.md       # Deployment guide
+├── 🔌 mcp/                  # MCP (Model Context Protocol)
+│   ├── core/
+│   ├── security/
+│   ├── adapters/
+│   └── MCPSecurityCore.ts
+│
+├── 📦 samples/              # Sample files (ORGANIZED)
+│   └── MagazzinoNAVISION.xlsx # Sample warehouse data
+│
+├── 🔧 backup/               # Backup files
+│   ├── emergency-server.cjs
+│   └── main.js
+│
+├── 🧪 tests/                # Test files
+│   └── mcp.test.ts
+│
+├── 📱 public/               # Public assets
+│   └── assets/
+│
+├── 🏗️ dist/                # Build output (gitignored)
+│
+├── 📦 node_modules/         # Dependencies (gitignored)
+│
+└── 📄 Root Files
+    ├── App.tsx              # Main app component
+    ├── index.tsx            # Entry point (with interceptors)
+    ├── index.html           # HTML template
+    ├── index.css            # Base styles
+    ├── constants.ts         # Global constants
+    ├── types.ts             # Type definitions
+    ├── translations.ts      # i18n translations
+    └── README.md            # Project documentation
 ```
 
 ---

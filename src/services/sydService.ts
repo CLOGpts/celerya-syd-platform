@@ -136,19 +136,32 @@ export const sydService = {
         return [];
       }
 
+      // Query senza orderBy per evitare Firebase index requirement
+      // NESSUN LIMIT - prendiamo TUTTE le conversazioni per garantire completezza
       const q = query(
-        collection(db, 'sydAnalysis', userId, 'conversations'),
-        orderBy('timestamp', 'desc'),
-        limit(limitCount)
+        collection(db, 'sydAnalysis', userId, 'conversations')
+        // Limit rimosso per ANTIFRAGILITÀ totale
       );
 
       const snapshot = await getDocs(q);
-      console.log('Found conversations:', snapshot.size);
+      console.log('ANTIFRAGILE: Found ALL conversations:', snapshot.size);
 
-      return snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      } as SydConversation));
+      // Client-side sorting per timestamp DESC
+      const conversations = snapshot.docs
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        } as SydConversation))
+        .sort((a, b) => {
+          // Handle Firestore Timestamp objects and fallback numbers
+          const timeA = a.timestamp?.seconds || a.timestamp || 0;
+          const timeB = b.timestamp?.seconds || b.timestamp || 0;
+          return timeB - timeA; // DESC order
+        })
+        .slice(0, limitCount); // Applica limit dopo sort
+
+      console.log('Sorted conversations (client-side):', conversations.length);
+      return conversations;
     } catch (error) {
       console.error('Errore nel recuperare conversazioni:', error);
       return [];
@@ -358,15 +371,23 @@ export const sydService = {
       const userId = auth.currentUser?.uid;
       if (!userId) return null;
 
-      // Recupera tutte le conversazioni
+      // Recupera conversazioni senza orderBy per evitare index requirement
+      // NESSUN LIMIT - prendiamo TUTTE le conversazioni per statistiche accurate
       const q = query(
-        collection(db, 'sydAnalysis', userId, 'conversations'),
-        orderBy('timestamp', 'desc'),
-        limit(100)
+        collection(db, 'sydAnalysis', userId, 'conversations')
+        // Limit rimosso per statistiche complete
       );
 
       const snapshot = await getDocs(q);
-      const conversations = snapshot.docs.map(doc => doc.data());
+
+      // Client-side sorting per timestamp DESC
+      const conversations = snapshot.docs
+        .map(doc => doc.data())
+        .sort((a, b) => {
+          const timeA = a.timestamp?.seconds || a.timestamp || 0;
+          const timeB = b.timestamp?.seconds || b.timestamp || 0;
+          return timeB - timeA; // DESC order
+        });
 
       // Calcola statistiche
       const stats = {

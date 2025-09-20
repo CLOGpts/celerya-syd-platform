@@ -106,7 +106,19 @@ export class SemanticSearchService {
       if (interpretation.searchTerms.length > 0) {
         filteredResults = this.filterBySearchTerms(results, interpretation.searchTerms, schema);
       }
-      
+
+      // Client-side sorting quando Firebase ha skippato l'orderBy (filtri multipli)
+      if (interpretation.sorting && interpretation.filters.length > 1) {
+        const { field, direction } = interpretation.sorting;
+        filteredResults.sort((a, b) => {
+          const aVal = a[field];
+          const bVal = b[field];
+          if (aVal === bVal) return 0;
+          const comparison = aVal < bVal ? -1 : 1;
+          return direction === 'desc' ? -comparison : comparison;
+        });
+      }
+
       return {
         success: true,
         data: filteredResults,

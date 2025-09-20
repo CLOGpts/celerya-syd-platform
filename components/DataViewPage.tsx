@@ -187,14 +187,18 @@ const DataViewPage: React.FC = () => {
 
     // Carica conversazioni recenti all'avvio per dare contesto
     useEffect(() => {
+        let isComponentMounted = true;
+
         const loadChatHistory = async () => {
+            if (!isComponentMounted) return;
+
             // Aspetta un attimo per essere sicuri che auth sia pronto
             await new Promise(resolve => setTimeout(resolve, 1000));
 
-            // Ricontrolla l'utente
+            // Ricontrolla l'utente e il mounting status
             const user = auth.currentUser;
-            if (!user) {
-                console.log('No user after waiting');
+            if (!user || !isComponentMounted) {
+                console.log('No user or component unmounted');
                 return;
             }
 
@@ -204,7 +208,7 @@ const DataViewPage: React.FC = () => {
                 // Carica TUTTE le conversazioni precedenti (aumentiamo il limite)
                 const allConversations = await sydService.getRecentConversations(100); // Carica fino a 100 messaggi
 
-                if (allConversations.length > 0) {
+                if (allConversations.length > 0 && isComponentMounted) {
                     // Ricostruisce l'intera chat history
                     const chatHistory: any[] = [];
 
@@ -229,11 +233,13 @@ const DataViewPage: React.FC = () => {
                     setMessages(chatHistory);
                 }
 
-                const contextualMemory = await sydService.buildContextFromHistory();
+                if (isComponentMounted) {
+                    const contextualMemory = await sydService.buildContextFromHistory();
 
-                // Se ci sono conversazioni recenti, aggiorna il messaggio di benvenuto
-                if (allConversations.length > 0 && contextualMemory) {
-                    console.log('Contesto storico caricato per SYD');
+                    // Se ci sono conversazioni recenti, aggiorna il messaggio di benvenuto
+                    if (allConversations.length > 0 && contextualMemory) {
+                        console.log('Contesto storico caricato per SYD');
+                    }
                 }
             } catch (error) {
                 console.error('Errore nel caricare contesto:', error);
@@ -242,16 +248,18 @@ const DataViewPage: React.FC = () => {
 
         // Aggiungi un listener per l'auth state
         const unsubscribe = auth.onAuthStateChanged((user) => {
-            if (user) {
+            if (user && isComponentMounted) {
                 console.log('User authenticated:', user.uid);
                 loadChatHistory();
             }
         });
 
-        // Prima prova immediata
-        loadChatHistory();
+        // NON chiamare loadChatHistory() direttamente qui per evitare race condition
 
-        return () => unsubscribe();
+        return () => {
+            isComponentMounted = false;
+            unsubscribe();
+        };
     }, []);
 
     const handleClearChat = async () => {
