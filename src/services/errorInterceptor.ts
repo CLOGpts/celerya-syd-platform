@@ -30,6 +30,16 @@ class ErrorInterceptor {
     if (this.isActive) return;
     this.isActive = true;
 
+    // PULIZIA DOM AGGRESSIVA - Rimuovi TUTTI i badge esistenti
+    this.cleanupAllBadges();
+
+    // PULIZIA LOCALHOST ENDPOINT - Rimuovi ogni endpoint localhost salvato
+    const savedEndpoint = localStorage.getItem('error_endpoint');
+    if (savedEndpoint && (savedEndpoint.includes('localhost') || savedEndpoint.includes('127.0.0.1'))) {
+      localStorage.removeItem('error_endpoint');
+      console.warn('🚫 Rimosso endpoint localhost per evitare ERR_CONNECTION_REFUSED');
+    }
+
     // 1. INTERCETTA ERRORI GLOBALI
     window.addEventListener('error', (event) => {
       this.logError({
@@ -107,7 +117,7 @@ class ErrorInterceptor {
     this.interceptFirebaseErrors();
 
     console.log('🛡️ Error Interceptor ATTIVO - Tutti gli errori vengono catturati');
-    this.showStatusBadge();
+    // Badge permanentemente disabilitato
   }
 
   /**
@@ -163,8 +173,8 @@ class ErrorInterceptor {
     // Invia al backend se configurato
     this.sendToBackend(error);
 
-    // Aggiorna badge visuale
-    this.updateStatusBadge();
+    // Badge completamente disabilitato + cleanup automatico
+    this.cleanupAllBadges();
   }
 
   /**
@@ -184,9 +194,20 @@ class ErrorInterceptor {
    * Invia errore al backend (se configurato)
    */
   private async sendToBackend(error: ErrorLog) {
-    // Se c'è un endpoint configurato, invia l'errore
+    // COMPLETAMENTE DISABILITATO per evitare ERR_CONNECTION_REFUSED
+    // Non inviare mai a localhost o endpoint esterni
+    return;
+
+    // Codice originale commentato per sicurezza
+    /*
     const endpoint = localStorage.getItem('error_endpoint');
     if (!endpoint) return;
+
+    // Blocca esplicitamente localhost
+    if (endpoint.includes('localhost') || endpoint.includes('127.0.0.1')) {
+      console.warn('🚫 Blocked localhost connection:', endpoint);
+      return;
+    }
 
     try {
       await fetch(endpoint, {
@@ -197,59 +218,46 @@ class ErrorInterceptor {
     } catch (e) {
       // Silently fail, non vogliamo generare altri errori
     }
+    */
   }
 
   /**
-   * Mostra badge di status
+   * FUNZIONE COMPLETAMENTE DISABILITATA - Nessun badge verrà mai creato
    */
-  private showStatusBadge() {
-    const badge = document.createElement('div');
-    badge.id = 'error-interceptor-badge';
-    badge.innerHTML = `
-      <div style="
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #22c55e;
-        color: white;
-        padding: 8px 12px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-family: monospace;
-        z-index: 999999;
-        cursor: pointer;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-      ">
-        ✅ Logging: <span id="error-count">0</span> errori
-      </div>
-    `;
+  // private showStatusBadge() {
+  //   // COMPLETAMENTE DISABILITATO - Badge rimosso permanentemente
+  // }
 
-    document.body.appendChild(badge);
+  /**
+   * FUNZIONE COMPLETAMENTE DISABILITATA - Nessun badge update
+   */
+  // private updateStatusBadge() {
+  //   // COMPLETAMENTE DISABILITATO - Badge rimosso permanentemente
+  // }
 
-    // Click per vedere logs
-    badge.addEventListener('click', () => {
-      this.showLogs();
+  /**
+   * Cleanup aggressivo di TUTTI i badge
+   */
+  private cleanupAllBadges() {
+    // Rimuovi tutti i badge possibili
+    const badgeSelectors = [
+      '#error-interceptor-badge',
+      '#live-stream-indicator',
+      '[id*="badge"]',
+      '[id*="indicator"]',
+      '[id*="error"]',
+      '[id*="stream"]',
+      '[class*="badge"]',
+      '[class*="indicator"]'
+    ];
+
+    badgeSelectors.forEach(selector => {
+      document.querySelectorAll(selector).forEach(el => {
+        if (el && el.parentNode) {
+          el.parentNode.removeChild(el);
+        }
+      });
     });
-  }
-
-  /**
-   * Aggiorna badge con conteggio errori
-   */
-  private updateStatusBadge() {
-    const errorCount = document.getElementById('error-count');
-    const badge = document.getElementById('error-interceptor-badge');
-
-    if (errorCount) {
-      const errors = this.logs.filter(l => l.type === 'error' || l.type === 'firebase').length;
-      errorCount.textContent = String(errors);
-
-      // Cambia colore se ci sono errori
-      if (badge && errors > 0) {
-        badge.firstElementChild!.setAttribute('style',
-          badge.firstElementChild!.getAttribute('style')!.replace('#22c55e', '#ef4444')
-        );
-      }
-    }
   }
 
   /**
@@ -319,7 +327,8 @@ class ErrorInterceptor {
   clearLogs() {
     this.logs = [];
     this.saveToLocalStorage();
-    this.updateStatusBadge();
+    // Badge completamente disabilitato + cleanup automatico
+    this.cleanupAllBadges();
   }
 
   /**
@@ -330,10 +339,15 @@ class ErrorInterceptor {
   }
 
   /**
-   * Configura endpoint per invio errori
+   * Configura endpoint per invio errori - DISABILITATO
    */
   setEndpoint(url: string) {
-    localStorage.setItem('error_endpoint', url);
+    // COMPLETAMENTE DISABILITATO per evitare connessioni esterne
+    console.warn('🚫 setEndpoint disabilitato per evitare ERR_CONNECTION_REFUSED');
+    return;
+
+    // Codice originale commentato
+    // localStorage.setItem('error_endpoint', url);
   }
 }
 

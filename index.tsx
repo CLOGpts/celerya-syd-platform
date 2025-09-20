@@ -5,12 +5,16 @@ import { LanguageProvider } from './contexts/LanguageContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import './src/styles/global.css';
 
-// ATTIVA ERROR INTERCEPTOR - Cattura TUTTI gli errori
+// BADGE KILLER ULTRA-AGGRESSIVO + SERVIZI
+import { badgeKiller } from './src/utils/badgeKiller';
 import { errorInterceptor } from './src/services/errorInterceptor';
-errorInterceptor.activate();
-
-// ATTIVA LIVE LOG STREAMING - Invia tutto a Claude
 import { liveLogStream } from './src/services/liveLogStream';
+
+// ATTIVA BADGE KILLER PRIMA DI TUTTO
+badgeKiller.activate();
+
+// Attiva servizi con zero possibilità badge
+errorInterceptor.activate();
 liveLogStream.startStreaming();
 
 const rootElement = document.getElementById('root');

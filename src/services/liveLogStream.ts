@@ -17,7 +17,7 @@ interface LogEntry {
 class LiveLogStream {
   private logs: LogEntry[] = [];
   private isStreaming = false;
-  private streamEndpoint = 'http://localhost:3333/logs'; // Server locale per ricevere logs
+  private streamEndpoint = ''; // DISABILITATO: Server locale per ricevere logs
   private fileOutput = true;
   private maxLogs = 500;
 
@@ -36,6 +36,9 @@ class LiveLogStream {
     if (this.isStreaming) return;
     this.isStreaming = true;
 
+      // PULIZIA DOM AGGRESSIVA - Rimuovi TUTTI i badge esistenti
+    this.cleanupAllBadges();
+
     // 1. INTERCETTA TUTTI I CONSOLE
     this.interceptConsole();
 
@@ -51,8 +54,8 @@ class LiveLogStream {
     // 5. CREA FILE OUTPUT
     this.createFileOutput();
 
-    // 6. MOSTRA INDICATORE VISUALE
-    this.showStreamIndicator();
+    // 6. INDICATORE VISUALE COMPLETAMENTE DISABILITATO
+    // Badge permanentemente disabilitato
 
     console.log('🚀 LIVE LOG STREAMING ATTIVO - Tutti i log vengono catturati');
   }
@@ -217,83 +220,37 @@ class LiveLogStream {
   }
 
   /**
-   * Crea output su file
+   * Crea output su file - SENZA INTERVAL BADGE
    */
   private createFileOutput() {
-    // Salva logs in localStorage per persistenza
-    setInterval(() => {
-      if (this.logs.length > 0) {
-        try {
-          const logsJson = JSON.stringify(this.logs, null, 2);
-          localStorage.setItem('live_logs', logsJson);
+    // Salva logs in localStorage per persistenza - NO setInterval che potrebbe creare badge
+    // setInterval completamente disabilitato per evitare interferenze badge
 
-          // Crea anche un blob downloadable
-          const blob = new Blob([logsJson], { type: 'application/json' });
-          const url = URL.createObjectURL(blob);
-          (window as any).LIVE_LOGS_URL = url;
+    // Salvataggio sincrono invece di interval
+    if (this.logs.length > 0) {
+      try {
+        const logsJson = JSON.stringify(this.logs, null, 2);
+        localStorage.setItem('live_logs', logsJson);
 
-        } catch (e) {
-          // Silent fail
-        }
+        // Crea anche un blob downloadable
+        const blob = new Blob([logsJson], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        (window as any).LIVE_LOGS_URL = url;
+      } catch (e) {
+        // Silent fail
       }
-    }, 1000); // Ogni secondo
+    }
   }
 
   /**
-   * Mostra indicatore streaming
+   * FUNZIONE COMPLETAMENTE DISABILITATA - Nessun badge verrà mai creato
    */
-  private showStreamIndicator() {
-    const indicator = document.createElement('div');
-    indicator.id = 'live-stream-indicator';
-    indicator.innerHTML = `
-      <div style="
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 10px 15px;
-        border-radius: 10px;
-        font-size: 13px;
-        font-family: 'Courier New', monospace;
-        z-index: 999999;
-        cursor: pointer;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        animation: pulse 2s infinite;
-      ">
-        <style>
-          @keyframes pulse {
-            0% { box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5); }
-            50% { box-shadow: 0 10px 40px rgba(102, 126, 234, 0.8); }
-            100% { box-shadow: 0 10px 30px rgba(102, 126, 234, 0.5); }
-          }
-        </style>
-        📡 LIVE STREAMING
-        <div style="font-size: 11px; margin-top: 3px;">
-          Logs: <span id="log-count">0</span> |
-          <span id="stream-status">🟢 Active</span>
-        </div>
-      </div>
-    `;
-
-    document.body.appendChild(indicator);
-
-    // Click per download logs
-    indicator.addEventListener('click', () => {
-      this.downloadLogs();
-    });
-
-    // Update counter
-    setInterval(() => {
-      const counter = document.getElementById('log-count');
-      if (counter) {
-        counter.textContent = String(this.logs.length);
-      }
-    }, 500);
-  }
+  // private showStreamIndicator() {
+  //   // COMPLETAMENTE DISABILITATO - Badge rimosso permanentemente
+  // }
 
   /**
-   * Aggiungi log
+   * Aggiungi log - Con cleanup automatico badge
    */
   private addLog(log: LogEntry) {
     this.logs.push(log);
@@ -303,26 +260,22 @@ class LiveLogStream {
       this.logs = this.logs.slice(-this.maxLogs);
     }
 
-    // Stream to endpoint if configured
-    if (this.streamEndpoint) {
-      this.streamToEndpoint(log);
-    }
+    // CLEANUP BADGE AUTOMATICO ad ogni log
+    this.cleanupAllBadges();
+
+    // Stream to endpoint COMPLETAMENTE DISABILITATO per evitare errori console
+    // NESSUNA connessione network sarà mai tentata
+    // if (this.streamEndpoint) {
+    //   this.streamToEndpoint(log);
+    // }
   }
 
   /**
-   * Stream to endpoint
+   * Stream to endpoint - COMPLETAMENTE DISABILITATO
    */
   private async streamToEndpoint(log: LogEntry) {
-    try {
-      // Silently try to send to local endpoint
-      await fetch(this.streamEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(log)
-      });
-    } catch (e) {
-      // Silent fail - non bloccare mai
-    }
+    // METODO COMPLETAMENTE DISABILITATO - Nessuna connessione network
+    return;
   }
 
   /**
@@ -388,6 +341,30 @@ class LiveLogStream {
    */
   clearLogs() {
     this.logs = [];
+  }
+
+  /**
+   * Cleanup aggressivo di TUTTI i badge
+   */
+  private cleanupAllBadges() {
+    // Rimuovi tutti i badge possibili
+    const badgeSelectors = [
+      '#live-stream-indicator',
+      '#error-interceptor-badge',
+      '[id*="badge"]',
+      '[id*="indicator"]',
+      '[id*="stream"]',
+      '[class*="badge"]',
+      '[class*="indicator"]'
+    ];
+
+    badgeSelectors.forEach(selector => {
+      document.querySelectorAll(selector).forEach(el => {
+        if (el && el.parentNode) {
+          el.parentNode.removeChild(el);
+        }
+      });
+    });
   }
 
   /**
