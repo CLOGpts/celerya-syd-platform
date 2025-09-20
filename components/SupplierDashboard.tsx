@@ -1,35 +1,20 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import UploadBox from './UploadBox';
 import { WalletIcon } from './icons/WalletIcon';
 import { ClockIcon } from './icons/ClockIcon';
 import { CoinIcon } from './icons/CoinIcon';
 import { CheckCircleIcon } from './icons/CheckCircleIcon';
 import type { SupplierEarning, Product } from '../types';
-import { getCustomSchema, generatePromptFromSchema } from '../constants';
 import { GoogleDriveIcon } from './icons/GoogleDriveIcon';
 import { MicrosoftIcon } from './icons/MicrosoftIcon';
-import { auth } from '../src/config/firebase';
+import { auth, db, storage } from '../src/config/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
+import { collection, getDocs } from 'firebase/firestore';
+import { supplierDocumentService } from '../src/services/supplierDocumentService';
 import sydService from '../src/services/sydService';
 
-const FEE_PER_DOCUMENT = 0.15; // € 0.15 per ogni documento caricato
-
 const generateUniqueId = (): string => `txn-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = () => {
-            const result = reader.result as string;
-            const base64 = result.substring(result.indexOf(',') + 1);
-            resolve(base64);
-        };
-        reader.onerror = error => reject(error);
-    });
-};
 const slugify = (text: string) => text.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-
 
 interface SupplierDashboardProps {
     availableSuppliers: string[];
@@ -50,11 +35,14 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
 }) => {
     const [balance, setBalance] = useState<number>(0);
     const [earnings, setEarnings] = useState<SupplierEarning[]>([]);
-    
+    const [documents, setDocuments] = useState<any[]>([]);
+    const [activeTab, setActiveTab] = useState<'earnings' | 'documents'>('earnings');
+
     const [file, setFile] = useState<File | null>(null);
     const [isProcessing, setIsProcessing] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+    const [uploadProgress, setUploadProgress] = useState<number>(0);
 
     const supplierSlug = useMemo(() => slugify(selectedSupplier), [selectedSupplier]);
     const balanceKey = `celerya_supplier_balance_${supplierSlug}`;
@@ -73,6 +61,43 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
             setEarnings([]);
         }
     }, [selectedSupplier, balanceKey, earningsKey]);
+
+    // Load Firebase earnings and documents data - FIXED FOR DEMO
+    useEffect(() => {
+        const loadFirebaseData = async () => {
+            try {
+                console.log('📊 Caricamento documenti per supplier:', selectedSupplier);
+
+                const userId = auth.currentUser?.uid;
+                if (!userId || !selectedSupplier) {
+                    console.log('Utente non autenticato o supplier non selezionato');
+                    return;
+                }
+
+                // USA IL SERVIZIO CORRETTO per caricare documenti filtrati
+                const supplierDocuments = await supplierDocumentService.getSupplierDocuments(selectedSupplier);
+                const supplierEarnings = await supplierDocumentService.getSupplierEarnings(selectedSupplier);
+
+                console.log(`✅ Caricati ${supplierDocuments.length} documenti per ${selectedSupplier}`);
+                console.log(`✅ Caricati ${supplierEarnings.length} earnings per ${selectedSupplier}`);
+
+                setDocuments(supplierDocuments);
+                setEarnings(supplierEarnings);
+
+                // Calcola balance totale PER QUESTO SUPPLIER
+                const totalBalance = supplierEarnings
+                    .filter(e => e.status === 'approved')
+                    .reduce((sum, e) => sum + e.fee, 0);
+                setBalance(totalBalance);
+            } catch (error) {
+                console.warn('⚠️ Errore caricamento da Firebase:', error);
+            }
+        };
+
+        if (selectedSupplier) {
+            loadFirebaseData();
+        }
+    }, [selectedSupplier]);
 
     // Save data to localStorage when it changes
     useEffect(() => {
@@ -100,164 +125,104 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
         if (!file) return;
         setIsProcessing(true);
         setError(null);
+        setUploadProgress(0);
 
-        console.log('🚀 Iniziando analisi documento:', file.name, 'Tipo:', file.type, 'Dimensione:', (file.size / 1024 / 1024).toFixed(2) + 'MB');
+        console.log('🚀 WARFARE MODE: Analisi documento con service professionale:', file.name);
 
         try {
-            // Usa la chiave API corretta di Gemini
-            const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-            console.log('🔑 API Key Gemini configurata:', apiKey ? 'SI' : 'NO', apiKey ? `(${apiKey.substring(0, 10)}...)` : '');
+            setUploadProgress(10);
 
-            if (!apiKey) {
-                console.error('❌ API Key Gemini non trovata');
-                throw new Error("API Key Gemini non configurata. Aggiungi VITE_GEMINI_API_KEY nel file .env");
-            }
+            // USA IL SERVICE COMPLETO - NO BYPASS
+            const result = await supplierDocumentService.processCompleteWorkflow(
+                file,
+                selectedSupplier,
+                selectedCustomer
+            );
 
-            console.log('🔧 Inizializzazione Google Generative AI...');
-            const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-            console.log('✅ Gemini 2.5 Flash inizializzato correttamente');
-            const customSchema = getCustomSchema();
-            const dynamicPrompt = generatePromptFromSchema(customSchema);
+            setUploadProgress(60);
 
-            // Prepara l'immagine per Gemini
-            const imageData = await fileToBase64(file);
-            const imagePart = {
-                inlineData: {
-                    mimeType: file.type,
-                    data: imageData
-                }
-            };
+            console.log('✅ SERVICE RESULT:', result);
 
-            console.log('📡 Invio richiesta a Gemini 2.5 Flash...');
-            const result = await model.generateContent([
-                dynamicPrompt,
-                imagePart
-            ]);
-            const response = await result.response;
-
-            console.log('✅ Risposta ricevuta da Gemini 2.5 Flash');
-            let jsonStr = response.text();
-            console.log('📝 Lunghezza risposta JSON:', jsonStr.length);
-
-            const match = jsonStr.match(/^```(\w*)?\s*\n?(.*?)\n?\s*```$/);
-            if (match && match[2]) {
-                console.log('🧹 Rimosso wrapper markdown dalla risposta');
-                jsonStr = match[2].trim();
-            }
-
-            console.log('🔍 Tentativo parsing JSON...');
-            const parsedData = JSON.parse(jsonStr) as Product;
-            console.log('✅ JSON parsato con successo:', parsedData);
-
-            // Validazione più robusta della struttura
-            if (!parsedData || typeof parsedData !== 'object') {
-                throw new Error("Analisi fallita: risposta non valida da Gemini API");
-            }
-
-            if (!parsedData.identificazione || !parsedData.identificazione.produttore) {
-                console.warn('⚠️ Struttura JSON ricevuta:', JSON.stringify(parsedData, null, 2));
-                throw new Error("Analisi fallita: il documento non sembra una scheda tecnica valida. Produttore non trovato.");
-            }
-
-            console.log('✅ Validazione completata. Produttore trovato:', parsedData.identificazione.produttore);
-
+            // Update local state IMMEDIATAMENTE
             const newEarning: SupplierEarning = {
                 id: generateUniqueId(),
                 documentName: file.name,
-                documentType: file.type.startsWith('image/') ? 'Immagine' : file.type.includes('pdf') ? 'PDF' : 'Documento',
-                fee: FEE_PER_DOCUMENT,
+                documentType: result.processedData?.identificazione?.tipo || 'Documento',
+                fee: result.earnings.totalEarnings,
                 date: new Date().toISOString(),
                 status: 'approved',
             };
 
-            setBalance(prev => prev + FEE_PER_DOCUMENT);
+            // ATOMIC STATE UPDATES
+            setBalance(prev => prev + result.earnings.totalEarnings);
             setEarnings(prev => [newEarning, ...prev]);
 
-            // SALVA ANCHE IN celerya_suppliers_data PER LISTA DOCUMENTI
-            const customerSlug = slugify(selectedCustomer);
-            const supplierSlug = slugify(selectedSupplier);
-            console.log('💾 Preparazione salvataggio dati:', { customerSlug, supplierSlug });
+            setUploadProgress(80);
 
-            const allSuppliersData = JSON.parse(localStorage.getItem('celerya_suppliers_data') || '{}');
-            console.log('📚 Dati esistenti localStorage:', Object.keys(allSuppliersData));
-
-            if (!allSuppliersData[customerSlug]) {
-                console.log('🆕 Creazione nuovo cliente:', customerSlug);
-                allSuppliersData[customerSlug] = { suppliers: {} };
-            }
-            if (!allSuppliersData[customerSlug].suppliers[supplierSlug]) {
-                console.log('🆕 Creazione nuovo fornitore:', supplierSlug);
-                allSuppliersData[customerSlug].suppliers[supplierSlug] = {
-                    name: selectedSupplier,
-                    lastUpdate: new Date().toISOString(),
-                    pdfs: {}
-                };
-            }
-
-            // Aggiungi il documento processato
-            const docId = generateUniqueId();
-            console.log('📄 Salvataggio documento con ID:', docId);
-
-            allSuppliersData[customerSlug].suppliers[supplierSlug].pdfs[docId] = {
-                ...parsedData,
-                id: docId,
-                savedAt: new Date().toISOString(),
-                fileName: file.name
+            // Crea docData per UI
+            const docData = {
+                id: result.documentId,
+                fileName: file.name,
+                fileType: result.processedData?.identificazione?.tipo || file.type,
+                fileSize: file.size,
+                uploadDate: new Date().toISOString(),
+                supplier: selectedSupplier,
+                customer: selectedCustomer,
+                earnings: result.earnings,
+                status: 'completed'
             };
 
-            // Aggiorna lastUpdate del fornitore
-            allSuppliersData[customerSlug].suppliers[supplierSlug].lastUpdate = new Date().toISOString();
+            // IMMEDIATE UI UPDATE
+            setDocuments(prev => [docData, ...prev]);
 
-            console.log('💾 Salvataggio in localStorage...');
-            localStorage.setItem('celerya_suppliers_data', JSON.stringify(allSuppliersData));
+            setUploadProgress(90);
 
-            // Verifica che il salvataggio sia andato a buon fine
-            const savedData = JSON.parse(localStorage.getItem('celerya_suppliers_data') || '{}');
-            const docCount = Object.keys(savedData[customerSlug]?.suppliers?.[supplierSlug]?.pdfs || {}).length;
-            console.log('✅ Documenti salvati per questo fornitore:', docCount);
-
-            // 🔥 CHIRURGIA: Integrazione Firebase per persistenza
+            // Legacy localStorage per compatibilità
             try {
-                await sydService.saveConversation(
-                    `Analisi documento: ${file.name}`,
-                    JSON.stringify(parsedData, null, 2),
-                    {
-                        documentType: file.type,
-                        supplier: selectedSupplier,
-                        customer: selectedCustomer,
-                        fileName: file.name,
-                        fee: FEE_PER_DOCUMENT,
-                        extractedData: parsedData
-                    }
-                );
-                console.log('💾 Documento salvato anche in Firebase');
-            } catch (firebaseError) {
-                console.warn('⚠️ Salvataggio Firebase fallito, mantenuto localStorage:', firebaseError);
+                const customerSlug = slugify(selectedCustomer);
+                const supplierSlug = slugify(selectedSupplier);
+                const allSuppliersData = JSON.parse(localStorage.getItem('celerya_suppliers_data') || '{}');
+
+                if (!allSuppliersData[customerSlug]) {
+                    allSuppliersData[customerSlug] = { suppliers: {} };
+                }
+                if (!allSuppliersData[customerSlug].suppliers[supplierSlug]) {
+                    allSuppliersData[customerSlug].suppliers[supplierSlug] = {
+                        name: selectedSupplier,
+                        lastUpdate: new Date().toISOString(),
+                        pdfs: {}
+                    };
+                }
+
+                allSuppliersData[customerSlug].suppliers[supplierSlug].pdfs[result.documentId] = {
+                    ...result.processedData,
+                    id: result.documentId,
+                    savedAt: new Date().toISOString(),
+                    fileName: file.name,
+                    earnings: result.earnings
+                };
+
+                localStorage.setItem('celerya_suppliers_data', JSON.stringify(allSuppliersData));
+                console.log('💾 Legacy localStorage aggiornato');
+            } catch (legacyError) {
+                console.warn('⚠️ Legacy save failed, core functionality maintained:', legacyError);
             }
 
-            setToast({ message: `+${FEE_PER_DOCUMENT.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })} per l'analisi!`, type: 'success' });
+            setUploadProgress(100);
+
+            setToast({
+                message: `+${result.earnings.totalEarnings.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })} per l'analisi!`,
+                type: 'success'
+            });
             setFile(null);
 
+            // SUCCESS - Reset progress dopo 1 secondo
+            setTimeout(() => setUploadProgress(0), 1000);
+
         } catch (e: any) {
-            console.error("Extraction failed:", e);
+            console.error("❌ WARFARE FAILED:", e);
 
-            // Gestione errori più specifica
-            let errorMessage = "L'analisi del documento è fallita. Riprova.";
-
-            if (e.message?.includes("API Key")) {
-                errorMessage = "Errore di configurazione: API Key Google AI non valida o mancante.";
-            } else if (e.message?.includes("quota")) {
-                errorMessage = "Quota API Google AI esaurita. Riprova più tardi.";
-            } else if (e.message?.includes("network") || e.message?.includes("fetch")) {
-                errorMessage = "Errore di connessione. Verifica la tua connessione internet.";
-            } else if (e.message?.includes("produttore non trovato")) {
-                errorMessage = e.message; // Mantieni il messaggio specifico di validazione
-            } else if (e.name === "SyntaxError") {
-                errorMessage = "Errore di parsing: risposta API non valida. Il documento potrebbe non essere leggibile.";
-            } else if (e.message) {
-                errorMessage = e.message;
-            }
+            let errorMessage = e.message || "Errore durante l'elaborazione del documento";
 
             setError(errorMessage);
             setToast({ message: errorMessage, type: 'error' });
@@ -276,8 +241,8 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 items-center">
                         <div className="lg:col-span-1">
-                            <h1 className="text-xl font-bold text-slate-100 dark:text-slate-100">Dashboard Fornitore</h1>
-                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Simulazione di caricamento dati</p>
+                            <h1 className="text-xl font-bold text-slate-100 dark:text-slate-100">Dashboard Fornitore Enhanced</h1>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Multi-formato + Firebase + Earnings calcolati</p>
                         </div>
                         
                         <div className="lg:col-start-2">
@@ -316,9 +281,9 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                     {/* Left Column: Upload Area & Automation */}
                     <div className="lg:col-span-2 space-y-8">
                         <UploadBox 
-                            title={`Carica un documento per ${selectedCustomer}`}
-                            description="Trascina qualsiasi documento per ricevere la tua fee istantanea. Guadagna € 0.15 per ogni documento caricato!"
-                            actionButtonText={file ? "Carica e Guadagna" : "Analizza e Guadagna"}
+                            title={`Carica documento multi-formato per ${selectedCustomer}`}
+                            description="Supporto completo: PDF, Excel, CSV, Word, Immagini. Firebase Storage + Earnings automatici. Guadagna fee variabile per tipo documento!"
+                            actionButtonText={file ? "Carica e Processa" : "Analizza Multi-Formato"}
                             file={file}
                             isProcessing={isProcessing}
                             onFileChange={handleFileChange}
@@ -327,6 +292,53 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                             acceptedFileTypes="*"
                             idPrefix="supplier-upload"
                         />
+
+                        {/* Progress Bar */}
+                        {isProcessing && uploadProgress > 0 && (
+                            <div className="bg-gray-900/50 rounded-xl border border-gray-800 p-4">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm text-gray-400">Elaborazione documento...</span>
+                                    <span className="text-sm text-lime-400">{uploadProgress}%</span>
+                                </div>
+                                <div className="w-full bg-gray-700 rounded-full h-2">
+                                    <div 
+                                        className="bg-lime-500 h-2 rounded-full transition-all duration-300" 
+                                        style={{ width: `${uploadProgress}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Enhanced File Support Info */}
+                        <div className="bg-gray-900/50 rounded-xl border border-gray-800 p-6">
+                            <h3 className="text-lg font-bold text-white mb-4">Formati Supportati Enhanced</h3>
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-lime-400 rounded-full"></div>
+                                    <span className="text-gray-300">PDF (€0.15)</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
+                                    <span className="text-gray-300">Excel (€0.20)</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                                    <span className="text-gray-300">CSV (€0.10)</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
+                                    <span className="text-gray-300">Word (€0.12)</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+                                    <span className="text-gray-300">Immagini (€0.15)</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                                    <span className="text-gray-300">+ Bonus validità</span>
+                                </div>
+                            </div>
+                        </div>
 
                          {/* Automation Section */}
                         <div className="text-center p-8 bg-gray-900/50 rounded-xl border border-gray-800">
@@ -358,17 +370,18 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
 
                     {/* Right Column: Balance & History */}
                     <div className="lg:col-span-1 space-y-6">
-                        {/* Balance Card */}
+                        {/* Enhanced Balance Card */}
                         <div className="bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-800">
                             <div className="flex items-center gap-4">
                                 <div className="p-3 bg-lime-900/30 rounded-full">
                                     <WalletIcon className="w-6 h-6 text-lime-400" />
                                 </div>
                                 <div>
-                                    <p className="text-sm text-gray-400">Saldo Disponibile</p>
+                                    <p className="text-sm text-gray-400">Saldo Enhanced</p>
                                     <p className="text-2xl font-bold text-gray-100">
                                         {balance.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}
                                     </p>
+                                    <p className="text-xs text-lime-400">Firebase + localStorage sync</p>
                                 </div>
                             </div>
                             <button className="mt-4 w-full px-4 py-2 bg-gray-800 text-white text-sm font-semibold rounded-lg hover:bg-gray-700 transition-colors">
@@ -376,33 +389,98 @@ export const SupplierDashboard: React.FC<SupplierDashboardProps> = ({
                             </button>
                         </div>
 
-                        {/* History Card */}
-                        <div className="bg-gray-900 p-6 rounded-xl shadow-sm border border-gray-800">
-                            <h3 className="text-lg font-semibold text-gray-200 mb-4">Cronologia Guadagni</h3>
-                            <ul className="space-y-4 max-h-96 overflow-y-auto pr-2 -mr-4">
-                                {sortedEarnings.length > 0 ? sortedEarnings.map(earning => (
-                                    <li key={earning.id} className="flex items-center gap-4">
-                                        <div className="p-2.5 bg-gray-800 rounded-full">
-                                            {earning.status === 'approved' ? (
-                                                <CheckCircleIcon className="w-5 h-5 text-green-500" />
-                                            ) : (
-                                                <ClockIcon className="w-5 h-5 text-yellow-500" />
+                        {/* Tabs Navigation */}
+                        <div className="bg-gray-900 rounded-xl border border-gray-800 overflow-hidden">
+                            <div className="flex border-b border-gray-800">
+                                <button
+                                    onClick={() => setActiveTab('earnings')}
+                                    className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                                        activeTab === 'earnings'
+                                            ? 'bg-gray-800 text-white border-b-2 border-lime-500'
+                                            : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                                    }`}
+                                >
+                                    Cronologia ({sortedEarnings.length})
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('documents')}
+                                    className={`flex-1 px-4 py-3 text-sm font-medium transition-colors ${
+                                        activeTab === 'documents'
+                                            ? 'bg-gray-800 text-white border-b-2 border-lime-500'
+                                            : 'text-gray-400 hover:text-white hover:bg-gray-800'
+                                    }`}
+                                >
+                                    Documenti ({documents.length})
+                                </button>
+                            </div>
+
+                            {/* Tab Content */}
+                            <div className="p-6">
+                                {activeTab === 'earnings' ? (
+                                    <>
+                                        <h3 className="text-lg font-semibold text-gray-200 mb-4">Cronologia Enhanced</h3>
+                                        <ul className="space-y-4 max-h-96 overflow-y-auto pr-2 -mr-4">
+                                            {sortedEarnings.length > 0 ? sortedEarnings.map(earning => (
+                                                <li key={earning.id} className="flex items-center gap-4">
+                                                    <div className="p-2.5 bg-gray-800 rounded-full">
+                                                        {earning.status === 'approved' ? (
+                                                            <CheckCircleIcon className="w-5 h-5 text-green-500" />
+                                                        ) : (
+                                                            <ClockIcon className="w-5 h-5 text-yellow-500" />
+                                                        )}
+                                                    </div>
+                                                    <div className="flex-grow">
+                                                        <p className="text-sm font-medium text-gray-200 truncate">{earning.documentName}</p>
+                                                        <p className="text-xs text-gray-400">
+                                                            {new Date(earning.date).toLocaleString('it-IT')} &middot; {earning.documentType}
+                                                        </p>
+                                                    </div>
+                                                    <p className="text-sm font-semibold text-green-400">
+                                                        +{earning.fee.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}
+                                                    </p>
+                                                </li>
+                                            )) : (
+                                                <p className="text-sm text-center text-gray-400 py-6">Nessun guadagno registrato.</p>
+                                            )}
+                                        </ul>
+                                    </>
+                                ) : (
+                                    <>
+                                        <h3 className="text-lg font-semibold text-gray-200 mb-4">Documenti Caricati</h3>
+                                        <div className="space-y-3 max-h-96 overflow-y-auto pr-2 -mr-4">
+                                            {documents.length > 0 ? documents.map(doc => (
+                                                <div key={doc.id} className="bg-gray-800/50 p-4 rounded-lg border border-gray-700">
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="flex-grow">
+                                                            <p className="text-sm font-medium text-gray-200 truncate">{doc.fileName}</p>
+                                                            <p className="text-xs text-gray-400 mt-1">
+                                                                {doc.fileType} &middot; {(doc.fileSize / 1024 / 1024).toFixed(2)} MB
+                                                            </p>
+                                                            <p className="text-xs text-gray-500 mt-1">
+                                                                {new Date(doc.uploadDate).toLocaleString('it-IT')}
+                                                            </p>
+                                                        </div>
+                                                        <div className="text-right ml-4">
+                                                            <p className="text-sm font-semibold text-lime-400">
+                                                                €{doc.earnings?.totalEarnings?.toFixed(2) || '0.00'}
+                                                            </p>
+                                                            <span className={`inline-block px-2 py-1 text-xs rounded-full mt-1 ${
+                                                                doc.status === 'completed'
+                                                                    ? 'bg-green-900/30 text-green-400'
+                                                                    : 'bg-yellow-900/30 text-yellow-400'
+                                                            }`}>
+                                                                {doc.status}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )) : (
+                                                <p className="text-sm text-center text-gray-400 py-6">Nessun documento caricato.</p>
                                             )}
                                         </div>
-                                        <div className="flex-grow">
-                                            <p className="text-sm font-medium text-gray-200 truncate">{earning.documentName}</p>
-                                            <p className="text-xs text-gray-400">
-                                                {new Date(earning.date).toLocaleString('it-IT')} &middot; {earning.documentType}
-                                            </p>
-                                        </div>
-                                        <p className="text-sm font-semibold text-green-400">
-                                            +{earning.fee.toLocaleString('it-IT', { style: 'currency', currency: 'EUR' })}
-                                        </p>
-                                    </li>
-                                )) : (
-                                    <p className="text-sm text-center text-gray-400 py-6">Nessun guadagno registrato.</p>
+                                    </>
                                 )}
-                            </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
