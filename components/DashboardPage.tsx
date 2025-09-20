@@ -13,6 +13,8 @@ import { useTranslation } from '../contexts/LanguageContext';
 import CatalogCreator from './CatalogCreator';
 import { CatalogIcon } from './icons/CatalogIcon';
 import { SydDesign } from '../src/styles/SydDesignSystem';
+import { supplierDocumentService } from '../src/services/supplierDocumentService';
+import { auth } from '../src/config/firebase';
 
 
 const FolderIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -409,6 +411,18 @@ const DashboardPage: React.FC = () => {
                 customerData.suppliers[producerSlug].pdfs[newProduct.id] = { ...newProduct, savedAt: new Date().toISOString() };
                 customerData.suppliers[producerSlug].lastUpdate = new Date().toISOString();
                 localStorage.setItem('celerya_suppliers_data', JSON.stringify(allData));
+
+                // SALVA ANCHE IN FIRESTORE
+                try {
+                    const result = await supplierDocumentService.processCompleteWorkflow(
+                        file,
+                        producer,
+                        selectedCustomer.name
+                    );
+                    console.log('✅ Scheda tecnica salvata in Firestore:', result.documentId);
+                } catch (firebaseError) {
+                    console.warn('⚠️ Salvataggio Firestore fallito, ma localStorage OK:', firebaseError);
+                }
             }
 
         } catch (e: any) {
@@ -461,6 +475,18 @@ const DashboardPage: React.FC = () => {
                 customerData.suppliers[mittenteSlug].ddts![ddtWithId.id] = { ...ddtWithId, savedAt: new Date().toISOString() };
                 customerData.suppliers[mittenteSlug].lastUpdate = new Date().toISOString();
                 localStorage.setItem('celerya_suppliers_data', JSON.stringify(allData));
+
+                // SALVA ANCHE IN FIRESTORE
+                try {
+                    const result = await supplierDocumentService.processCompleteWorkflow(
+                        transportFile,
+                        ddtWithId.info.mittente,
+                        selectedCustomer.name
+                    );
+                    console.log('✅ DDT salvato in Firestore:', result.documentId);
+                } catch (firebaseError) {
+                    console.warn('⚠️ Salvataggio Firestore fallito, ma localStorage OK:', firebaseError);
+                }
             }
         } catch (e: any) {
             console.error("Transport analysis failed:", e);
@@ -514,6 +540,18 @@ const DashboardPage: React.FC = () => {
                 customerData.suppliers[supplierSlug].catalogs![catalogWithId.id] = { ...catalogWithId, savedAt: new Date().toISOString() };
                 customerData.suppliers[supplierSlug].lastUpdate = new Date().toISOString();
                 localStorage.setItem('celerya_suppliers_data', JSON.stringify(allData));
+
+                // SALVA ANCHE IN FIRESTORE
+                try {
+                    const result = await supplierDocumentService.processCompleteWorkflow(
+                        catalogFile,
+                        catalogWithId.supplier,
+                        selectedCustomer.name
+                    );
+                    console.log('✅ Catalogo salvato in Firestore:', result.documentId);
+                } catch (firebaseError) {
+                    console.warn('⚠️ Salvataggio Firestore fallito, ma localStorage OK:', firebaseError);
+                }
             }
         } catch (e: any) {
             console.error("Catalog analysis failed:", e);
@@ -569,6 +607,18 @@ const DashboardPage: React.FC = () => {
                 customerData.suppliers[supplierSlug].priceLists![priceListWithId.id] = { ...priceListWithId, savedAt: new Date().toISOString() };
                 customerData.suppliers[supplierSlug].lastUpdate = new Date().toISOString();
                 localStorage.setItem('celerya_suppliers_data', JSON.stringify(allData));
+
+                // SALVA ANCHE IN FIRESTORE
+                try {
+                    const result = await supplierDocumentService.processCompleteWorkflow(
+                        priceListFile,
+                        priceListWithId.supplier,
+                        selectedCustomer.name
+                    );
+                    console.log('✅ Listino prezzi salvato in Firestore:', result.documentId);
+                } catch (firebaseError) {
+                    console.warn('⚠️ Salvataggio Firestore fallito, ma localStorage OK:', firebaseError);
+                }
             }
         } catch (e: any) {
             console.error("Price list analysis failed:", e);

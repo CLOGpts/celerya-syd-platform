@@ -1,0 +1,179 @@
+Strutturazione delle regole di sicurezza di Cloud Firestore
+
+bookmark_border
+
+
+Cloud Firestore Security Rules ti consentono di controllare l'accesso a documenti e raccolte nel tuo database. La sintassi flessibile delle regole ti consente di creare regole che corrispondono a qualsiasi cosa, da tutte le scritture all'intero database alle operazioni su un documento specifico.
+
+Questa guida descrive la sintassi e la struttura di base delle regole di sicurezza. Combina questa sintassi con le condizioni delle regole di sicurezza per creare set di regole completi.
+
+Nota:le librerie client server ignorano tutti i Cloud Firestore Security Rules ed eseguono l'autenticazione tramite le Credenziali predefinite dell'applicazione Google. Se utilizzi le librerie client del server o le API REST o RPC, assicurati di configurare Identity and Access Management (IAM) per Cloud Firestore.
+Dichiarazione di servizio e database
+Cloud Firestore Security Rules inizia sempre con la seguente dichiarazione:
+
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ...
+  }
+}
+La dichiarazione service cloud.firestore limita le regole a Cloud Firestore, evitando conflitti tra Cloud Firestore Security Rules e le regole per altri prodotti come Cloud Storage.
+
+La dichiarazione match /databases/{database}/documents specifica che le regole devono corrispondere a qualsiasi database Cloud Firestore nel progetto. Al momento, ogni progetto ha un solo database denominato (default).
+
+Regole di lettura/scrittura di base
+Le regole di base sono costituite da un'istruzione match che specifica un percorso del documento e da un'espressione allow che indica quando è consentita la lettura dei dati specificati:
+
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Match any document in the 'cities' collection
+    match /cities/{city} {
+      allow read: if <condition>;
+      allow write: if <condition>;
+    }
+  }
+}
+Tutte le istruzioni di corrispondenza devono indirizzare a documenti, non a raccolte. Un'istruzione di corrispondenza può puntare a un documento specifico, come in match /cities/SF, o utilizzare caratteri jolly per puntare a qualsiasi documento nel percorso specificato, come in match /cities/{city}.
+
+Nell'esempio precedente, l'istruzione match utilizza la sintassi del carattere jolly {city}. Ciò significa che la regola si applica a qualsiasi documento nella raccolta cities, ad esempio /cities/SF o /cities/NYC. Quando vengono valutate le espressioni allow nell'istruzione di corrispondenza, la variabile city viene risolta nel nome del documento della città, ad esempio SF o NYC.
+
+Nota: puoi accedere solo ai documenti per i quali le tue regole di sicurezza ti consentono specificamente l'accesso. Ad esempio, le regole mostrate sopra consentono l'accesso solo ai documenti nella raccolta cities; di conseguenza, negano anche l'accesso ai documenti in tutte le altre raccolte.
+Operazioni granulari
+In alcune situazioni, è utile suddividere read e write in operazioni più granulari. Ad esempio, la tua app potrebbe voler applicare condizioni diverse alla creazione e all'eliminazione dei documenti. Oppure potresti voler consentire la lettura di singoli documenti, ma negare le query di grandi dimensioni.
+
+Una regola read può essere suddivisa in get e list, mentre una regola write può essere suddivisa in create, update e delete:
+
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // A read rule can be divided into get and list rules
+    match /cities/{city} {
+      // Applies to single document read requests
+      allow get: if <condition>;
+
+      // Applies to queries and collection read requests
+      allow list: if <condition>;
+    }
+
+    // A write rule can be divided into create, update, and delete rules
+    match /cities/{city} {
+      // Applies to writes to nonexistent documents
+      allow create: if <condition>;
+
+      // Applies to writes to existing documents
+      allow update: if <condition>;
+
+      // Applies to delete operations
+      allow delete: if <condition>;
+    }
+  }
+}
+Dati gerarchici
+I dati in Cloud Firestore sono organizzati in raccolte di documenti e ogni documento può estendere la gerarchia tramite le raccolte secondarie. È importante capire come le regole di sicurezza interagiscono con i dati gerarchici.
+
+Considera la situazione in cui ogni documento nella raccolta cities contiene una raccolta secondaria landmarks. Le regole di sicurezza si applicano solo al percorso corrispondente, pertanto i controlli dell'accesso definiti nella raccolta cities non si applicano alla raccolta secondaria landmarks. Scrivi invece regole esplicite per controllare l'accesso alle raccolte secondarie:
+
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /cities/{city} {
+      allow read, write: if <condition>;
+
+        // Explicitly define rules for the 'landmarks' subcollection
+        match /landmarks/{landmark} {
+          allow read, write: if <condition>;
+        }
+    }
+  }
+}
+Quando si nidificano le istruzioni match, il percorso dell'istruzione match interna è sempre relativo al percorso dell'istruzione match esterna. Pertanto, i seguenti insiemi di regole sono equivalenti:
+
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /cities/{city} {
+      match /landmarks/{landmark} {
+        allow read, write: if <condition>;
+      }
+    }
+  }
+}
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /cities/{city}/landmarks/{landmark} {
+      allow read, write: if <condition>;
+    }
+  }
+}
+Caratteri jolly ricorsivi
+Se vuoi che le regole vengano applicate a una gerarchia arbitrariamente profonda, utilizza la sintassi jolly ricorsiva, {name=**}. Ad esempio:
+
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Matches any document in the cities collection as well as any document
+    // in a subcollection.
+    match /cities/{document=**} {
+      allow read, write: if <condition>;
+    }
+  }
+}
+Quando utilizzi la sintassi con caratteri jolly ricorsivi, la variabile jolly conterrà l'intero segmento di percorso corrispondente, anche se il documento si trova in una raccolta secondaria nidificata in profondità. Ad esempio, le regole elencate sopra corrisponderebbero a un documento che si trova in /cities/SF/landmarks/coit_tower e il valore della variabile document sarebbe SF/landmarks/coit_tower.
+
+Tieni presente, tuttavia, che il comportamento dei caratteri jolly ricorsivi dipende dalla versione delle regole.
+
+Versione 1
+Versione 2
+Le regole di sicurezza utilizzano la versione 1 per impostazione predefinita. Nella versione 1, i caratteri jolly ricorsivi corrispondono a uno o più elementi del percorso. Non corrispondono a un percorso vuoto, quindi match /cities/{city}/{document=**} corrisponde ai documenti nelle sottoraccolte, ma non nella raccolta cities, mentre match /cities/{document=**} corrisponde sia ai documenti nella raccolta cities sia nelle sottoraccolte.
+
+I caratteri jolly ricorsivi devono essere inseriti alla fine di un'istruzione di corrispondenza.
+
+Se utilizzi le query sui gruppi di raccolte, devi utilizzare la versione 2. Consulta la sezione Proteggere le query sui gruppi di raccolte.
+
+Istruzioni di corrispondenza sovrapposte
+È possibile che un documento corrisponda a più di un'istruzione match. Nel caso in cui più espressioni allow corrispondano a una richiesta, l'accesso è consentito se una qualsiasi delle condizioni è true:
+
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Matches any document in the 'cities' collection.
+    match /cities/{city} {
+      allow read, write: if false;
+    }
+
+    // Matches any document in the 'cities' collection or subcollections.
+    match /cities/{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+Nell'esempio precedente, tutte le letture e le scritture nella raccolta cities saranno consentite perché la seconda regola è sempre true, anche se la prima regola è sempre false.
+
+Limiti delle regole di sicurezza
+Quando lavori con le regole di sicurezza, tieni presente i seguenti limiti:
+
+Limite	Dettagli
+Numero massimo di chiamate exists(), get() e getAfter() per richiesta	
+10 per richieste di documenti singoli e di query.
+20 per transazioni, operazioni di scrittura in batch e operazioni di lettura di più documenti. A ciascuna operazione si applica anche il limite precedente di 10.
+
+Ad esempio, immagina di creare una richiesta di scrittura in batch con 3 operazioni di scrittura e che le tue regole di sicurezza utilizzino 2 chiamate di accesso ai documenti per convalidare ogni operazione di scrittura. In questo caso, ogni operazione di scrittura utilizza 2 delle sue 10 chiamate di accesso e la richiesta di scrittura in batch utilizza 6 delle sue 20 chiamate di accesso.
+
+Il superamento di uno dei limiti comporta un errore di autorizzazione negata.
+
+Alcune chiamate di accesso ai documenti possono essere memorizzate nella cache e le chiamate nella cache non vengono considerate ai fini dei limiti.
+
+Profondità massima delle istruzioni match nidificate	10
+Lunghezza massima del percorso, in segmenti di percorso, consentita all'interno di un set di istruzioni match nidificate	100
+Numero massimo di variabili di acquisizione percorso consentite all'interno di un set di istruzioni match nidificate	20
+Profondità massima delle chiamate funzione	20
+Numero massimo di argomenti di funzione	7
+Numero massimo di associazioni di variabili let per funzione	10
+Numero massimo di chiamate di funzione ricorsive o cicliche	0 (non consentite)
+Numero massimo di espressioni valutate per richiesta	1000
+Dimensione massima di un set di regole	I set di regole devono rispettare due limiti di dimensione:
+Un limite di 256 kB per la dimensione dell'origine di testo del set di regole pubblicata dalla console Firebase o dalla CLI utilizzando firebase deploy.
+Un limite di 250 kB per la dimensione del set di regole compilato che risulta quando Firebase elabora l'origine e la rende attiva sul back-end.

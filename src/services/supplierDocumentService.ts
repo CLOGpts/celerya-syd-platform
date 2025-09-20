@@ -108,14 +108,16 @@ class SupplierDocumentService {
 
       const timestamp = Date.now();
       const fileRef = ref(storage, `suppliers/${supplierId}/documents/${timestamp}_${file.name}`);
+
+      console.log('📤 Uploading to Firebase Storage...');
       const snapshot = await uploadBytes(fileRef, file);
       const downloadURL = await getDownloadURL(snapshot.ref);
-      
+
       console.log('✅ File caricato su Firebase Storage:', downloadURL);
       return downloadURL;
     } catch (error) {
       console.error('❌ Errore upload Firebase Storage:', error);
-      throw new Error('Errore nel caricamento file');
+      throw error;
     }
   }
 
