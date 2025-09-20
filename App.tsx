@@ -11,6 +11,7 @@ import LoginPage from './components/LoginPage';
 import ExcelUploaderPage from './components/experimental/ExcelUploaderPage';
 import SemanticSearchPage from './components/experimental/SemanticSearchPage';
 import LLMExcelPage from './components/experimental/LLMExcelPage';
+import VideoModal from './components/VideoModal';
 import { SpinnerIcon } from './components/icons/SpinnerIcon';
 import type { Product, Alert, Section, AnalyzedTransportDocument, Customer, AllSuppliersData } from './types';
 import { getCustomSchema, generateAlertsFromSchema } from './constants';
@@ -24,6 +25,7 @@ import { SydDesign } from './src/styles/SydDesignSystem';
 
 const App: React.FC = () => {
   const [activePage, setActivePage] = useState<string>('Dashboard');
+  const [showVideoModal, setShowVideoModal] = useState(false);
   const [viewerDoc, setViewerDoc] = useState<{product: Product, alerts: Alert[], schema: Section[]} | null>(null);
   const [resourceToView, setResourceToView] = useState<Product | null>(null);
   const [ddtToView, setDdtToView] = useState<AnalyzedTransportDocument | null>(null);
@@ -238,6 +240,7 @@ const App: React.FC = () => {
                   {[
                     { id: 'Dashboard', label: 'Dashboard', icon: '📊' },
                     { id: 'SYD AGENT', label: 'SYD Agent', icon: '🤖' },
+                    { id: 'SYD Presentazione', label: 'SYD Presentazione', icon: '🎬' },
                     { id: 'Lista Documenti', label: 'Lista Documenti', icon: '📄' },
                     { id: 'divider1', label: 'divider', icon: '' },
                     { id: 'Excel Upload', label: 'Excel Upload [BETA]', icon: '🧪', beta: true },
@@ -264,7 +267,13 @@ const App: React.FC = () => {
                     return (
                       <button
                         key={item.id}
-                        onClick={() => setActivePage(item.id)}
+                        onClick={() => {
+                          if (item.id === 'SYD Presentazione') {
+                            setShowVideoModal(true);
+                          } else {
+                            setActivePage(item.id);
+                          }
+                        }}
                         className={`
                           w-full px-4 py-3 rounded-lg flex items-center ${sidebarCollapsed ? 'justify-center' : 'gap-3'} transition-all duration-200
                           ${activePage === item.id
@@ -347,6 +356,12 @@ const App: React.FC = () => {
       >
           {userRole === 'client' ? <UserCogIcon className="w-6 h-6" /> : <FactoryIcon />}
       </button>
+
+      {/* Video Modal */}
+      <VideoModal
+        isOpen={showVideoModal}
+        onClose={() => setShowVideoModal(false)}
+      />
     </>
   );
 };

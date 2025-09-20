@@ -48,6 +48,7 @@ const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage }) => {
   const navItems = [
     { id: 'Dashboard', label: t('sidebar.dashboard'), icon: <DashboardIcon /> },
     { id: 'SYD AGENT', label: t('sidebar.syd_agent'), icon: <TableIcon /> },
+    { id: 'SYD Presentazione', label: '🎬 SYD Presentazione', icon: <SparklesIcon className="w-5 h-5" /> },
     { id: 'Lista Documenti', label: 'Lista Documenti', icon: <FactoryIcon /> },
     { id: 'Excel Upload', label: 'Excel Upload', icon: <ExcelIcon className="w-5 h-5" /> },
     { id: 'Ricerca Semantica', label: '🧠 Ricerca Semantica', icon: <SearchIcon className="w-5 h-5" /> },
