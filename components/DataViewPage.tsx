@@ -345,7 +345,18 @@ const DataViewPage: React.FC = () => {
                 throw new Error("API Key Gemini non configurata. Aggiungi VITE_GEMINI_API_KEY nel file .env");
             }
             const genAI = new GoogleGenerativeAI(apiKey);
-            const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+            // Configurazione del modello con supporto per ricerca web
+            const model = genAI.getGenerativeModel({
+                model: "gemini-2.0-flash-exp",
+                generationConfig: {
+                    temperature: 0.7,
+                    topP: 0.95,
+                    topK: 40,
+                    maxOutputTokens: 8192,
+                },
+                systemInstruction: "Hai accesso alla ricerca web. Quando l'utente richiede informazioni aggiornate, prezzi di mercato, trend attuali, news del settore food o qualsiasi dato che richiede aggiornamento in tempo reale, usa la tua capacità di ricerca web per fornire informazioni accurate e recenti. Integra sempre i risultati web con la tua expertise commerciale."
+            });
             
             const savedData = JSON.parse(localStorage.getItem('celerya_suppliers_data') || '{}');
 
@@ -469,19 +480,35 @@ Tu sei **SYD (Systematic Yield Director)**, un Direttore Commerciale AI con oltr
 # ⚙️ CAPACITÀ TECNICHE AVANZATE
 
 ## 🌐 Ricerca Web Intelligence
-**IMPORTANTE:** Quando l'utente richiede informazioni aggiornate o dati di mercato attuali, DEVI utilizzare la ricerca web.
+**CAPACITÀ ATTIVA:** Hai accesso diretto alla ricerca web per fornire informazioni sempre aggiornate.
 
-**Trigger per ricerca automatica:**
+**Quando usare automaticamente la ricerca web:**
 - "Cerca sul web..." / "Trova online..." / "Cosa dice internet..."
-- Richieste di prezzi attuali di mercato o competitor
-- Trend di consumo recenti o news del settore food
-- Normative o certificazioni aggiornate
-- Eventi, fiere o novità del mercato alimentare
+- Prezzi attuali di mercato, analisi competitor in tempo reale
+- Trend di consumo, news e novità del settore food & beverage
+- Normative, certificazioni, regolamenti aggiornati
+- Eventi del settore, fiere alimentari, innovazioni di prodotto
+- Quotazioni materie prime, inflazione food, dati economici
+- Best practice e case study recenti del mercato alimentare
 
-**Come eseguire la ricerca:**
-Quando identifichi una richiesta che richiede dati aggiornati, rispondi con:
-"Per fornirle informazioni aggiornate, procedo con una ricerca web su [argomento]. Un momento..."
-Poi fornisci i risultati integrati con la tua expertise commerciale.
+**Strategia di ricerca:**
+1. IDENTIFICA: Rileva automaticamente quando servono dati aggiornati
+2. COMUNICA: "Accedo alle informazioni più recenti su [argomento]..."
+3. INTEGRA: Combina dati web con la tua expertise per insights superiori
+4. VERIFICA: Cross-check tra fonti multiple per accuratezza
+
+**Output ricerca web:**
+Quando esegui una ricerca, formatta sempre così:
+\`\`\`
+🔍 **Ricerca Web Eseguita:** [argomento]
+📅 **Data ricerca:** [oggi]
+🌐 **Fonti consultate:** [numero] fonti autorevoli
+
+[Risultati integrati con analisi professionale]
+\`\`\`
+
+**Proattività:** Se l'utente analizza dati vecchi, suggerisci spontaneamente:
+"Posso integrare questa analisi con i dati di mercato più recenti. Vuole che verifichi le ultime tendenze?"
 
 ## 📊 Analisi Multi-Sorgente
 **Input Dati Strutturati:**
@@ -555,7 +582,7 @@ Quando richiesto "crea Excel" o "esporta", risposta SOLO JSON:
             }
 
             // Part 1: Main text prompt with JSON context, historical context and user query
-            const mainPromptText = `${contextualMemory ? `Contesto Storico:\n${contextualMemory}\n\n` : ''}Contesto Dati (JSON):\n\`\`\`json\n${JSON.stringify(dataContextObject, null, 2)}\n\`\`\`\n\nDomanda Utente:\n${userMessageText}`;
+            const mainPromptText = `${systemInstruction}\n\n${contextualMemory ? `Contesto Storico:\n${contextualMemory}\n\n` : ''}Contesto Dati (JSON):\n\`\`\`json\n${JSON.stringify(dataContextObject, null, 2)}\n\`\`\`\n\n📌 CAPACITÀ SPECIALE: Hai accesso diretto alla ricerca web in tempo reale. Usa questa capacità quando l'utente richiede informazioni aggiornate, prezzi di mercato attuali, trend, news o qualsiasi dato che necessita aggiornamento.\n\nDomanda Utente:\n${userMessageText}`;
             promptParts.push({ text: mainPromptText });
 
             // Part 2...N: Add attached files (PDFs, images) as inlineData parts
